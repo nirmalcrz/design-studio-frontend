@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Design Studio — Task Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+    <!-- 🔐 LOGIN SCREEN -->
+    <div id="loginScreen" class="login-overlay">
+        <div class="login-card">
+            <div class="brand-icon lg">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="8" height="8" rx="2" fill="var(--accent)" opacity="0.9" />
+                    <rect x="13" y="3" width="8" height="8" rx="2" fill="var(--accent)" opacity="0.4" />
+                    <rect x="3" y="13" width="8" height="8" rx="2" fill="var(--accent)" opacity="0.4" />
+                    <rect x="13" y="13" width="8" height="8" rx="2" fill="var(--accent)" opacity="0.7" />
+                </svg>
+            </div>
+            <h1 class="login-title">Design Studio</h1>
+            <p class="login-sub">Sign in to manage your workspace</p>
+            
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="loginUser" class="form-input" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <div class="pass-wrap">
+                    <input type="password" id="loginPass" class="form-input" placeholder="••••••••">
+                    <button class="pass-toggle" type="button" onclick="togglePass('loginPass', this)" title="Show/Hide Password">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <button class="btn-primary w-full" style="margin-top:10px" onclick="doLogin()">
+                Sign In
+            </button>
+            <div id="loginError" class="login-error"></div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="8" height="8" rx="2" fill="var(--accent)" opacity="0.9" />
+                    <rect x="13" y="3" width="8" height="8" rx="2" fill="var(--accent)" opacity="0.4" />
+                    <rect x="3" y="13" width="8" height="8" rx="2" fill="var(--accent)" opacity="0.4" />
+                    <rect x="13" y="13" width="8" height="8" rx="2" fill="var(--accent)" opacity="0.7" />
+                </svg>
+            </div>
+            <div>
+                <div class="brand-name">Design Studio</div>
+                <div class="brand-sub">Task Manager</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-item active" data-screen="works" onclick="switchScreen('works')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="2" y="7" width="20" height="14" rx="2" />
+                    <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
+                    <line x1="12" y1="12" x2="12" y2="16" />
+                    <line x1="10" y1="14" x2="14" y2="14" />
+                </svg>
+                <span>Works</span>
+                <span class="nav-badge" id="nb-works">0</span>
+            </button>
+            <button class="nav-item" data-screen="board" onclick="switchScreen('board')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                    <path d="M16 3.13a4 4 0 010 7.75" />
+                </svg>
+                <span>Designer Board</span>
+            </button>
+            <button class="nav-item" data-screen="weekly" onclick="switchScreen('weekly')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <span>Weekly Tracker</span>
+            </button>
+            <button class="nav-item" data-screen="kpi" onclick="switchScreen('kpi')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+                <span>KPI</span>
+            </button>
+            <div class="nav-divider"></div>
+            <button class="nav-item sprint" data-screen="sprintclose" onclick="switchScreen('sprintclose')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M18 6L6 18" />
+                    <path d="M6 6l12 12" />
+                </svg>
+                <span>Sprint Close</span>
+                <span class="nav-badge orange" id="nb-sprint">W?</span>
+            </button>
+            <button class="nav-item" data-screen="history" onclick="switchScreen('history')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <span>History</span>
+            </button>
+            <button class="nav-item" data-screen="clients" onclick="switchScreen('clients')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span>Clients</span>
+                <span class="nav-badge" id="nb-clients">0</span>
+            </button>
+            <button class="nav-item" data-screen="settings" onclick="switchScreen('settings')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                </svg>
+                <span>Settings</span>
+            </button>
+
+            <div class="nav-divider"></div>
+            
+            <button class="nav-item" onclick="logout()" style="color: #ef4444;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Logout</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div style="margin-bottom:12px; padding:0 4px">
+                <select id="userRoleSelect" class="filter-sel" style="width:100%; height:30px; font-size:10px; border-color:var(--border2); background:var(--bg3)" onchange="switchUserRole(this.value)">
+                    <option value="admin">Admin Mode</option>
+                    <option value="designer">Designer Mode</option>
+                </select>
+            </div>
+            <div class="week-chip" id="currentWeekChip">Loading…</div>
+            <div class="sidebar-time" id="sidebarTime"></div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <h1 class="page-title" id="pageTitle">Works</h1>
+                <span class="page-sub" id="pageSub">Task Intake & Overview</span>
+            </div>
+            <div class="topbar-right">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Light/Dark Mode" id="themeToggleBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14 7 7 0 000-14z" />
+                    </svg>
+                </button>
+                <button class="btn-ghost" onclick="refreshData()" title="Refresh">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10" />
+                        <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+                    </svg>
+                    Refresh
+                </button>
+                <button class="btn-primary" id="newTaskBtn" onclick="openNewTaskPanel()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    New Task
+                </button>
+                <div class="topbar-user">
+                    <span class="user-av" id="topbar-av">N</span>
+                    <span id="topbar-name">Nirmal</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ══════════ SCREEN: WORKS ══════════ -->
+        <section class="screen active" id="screen-works">
+            <div class="kpi-bar">
+                <div class="kpi-card"><span class="kpi-label">Total Tasks</span><span class="kpi-val"
+                        id="st-total">—</span></div>
+                <div class="kpi-card"><span class="kpi-label">Active</span><span class="kpi-val accent"
+                        id="st-active">—</span></div>
+                <div class="kpi-card"><span class="kpi-label">This Week</span><span class="kpi-val blue"
+                        id="st-week">—</span></div>
+                <div class="kpi-card"><span class="kpi-label">Completed</span><span class="kpi-val green"
+                        id="st-done">—</span></div>
+                <div class="kpi-card"><span class="kpi-label">Carry Overs</span><span class="kpi-val orange"
+                        id="st-carry">—</span></div>
+            </div>
+
+            <div class="filter-row">
+                <input class="search-box" id="worksSearch" type="text" placeholder="Search tasks or clients…"
+                    oninput="filterWorks()" />
+                <select class="filter-sel" id="filterWeek" onchange="filterWorks()">
+                    <option value="">All Weeks</option>
+                </select>
+                <select class="filter-sel" id="filterAssignee" onchange="filterWorks()">
+                    <option value="">All Designers</option>
+                    <option>Anu</option>
+                    <option>Asif</option>
+                    <option>Aysha</option>
+                    <option>Safnas</option>
+                </select>
+                <select class="filter-sel" id="filterStatus" onchange="filterWorks()">
+                    <option value="">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="inprogress">In Progress</option>
+                    <option value="waitingclient">Waiting Client</option>
+                    <option value="done">Done</option>
+                    <option value="carryover">Carry Over</option>
+                </select>
+                <select class="filter-sel" id="filterTimeline" onchange="filterWorks()">
+                    <option value="">Timeline: All</option>
+                    <option value="overdue">⚠️ Overdue</option>
+                    <option value="today">📅 Due Today</option>
+                    <option value="soon">⏰ Closing Soon</option>
+                    <option value="upcoming">🚀 Upcoming</option>
+                </select>
+                <select class="filter-sel" id="filterDateField" onchange="filterWorks()">
+                    <option value="finalDue">Delivery: Final</option>
+                    <option value="designDue">Delivery: Design</option>
+                </select>
+                <div class="view-toggle">
+                    <button class="vt-btn active" id="vt-grid" onclick="setView('grid')">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" />
+                            <rect x="14" y="3" width="7" height="7" />
+                            <rect x="3" y="14" width="7" height="7" />
+                            <rect x="14" y="14" width="7" height="7" />
+                        </svg>
+                    </button>
+                    <button class="vt-btn" id="vt-list" onclick="setView('list')">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="3" y1="12" x2="21" y2="12" />
+                            <line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="task-grid" id="worksGrid">
+                <!-- rendered by JS -->
+            </div>
+        </section>
+
+        <!-- ══════════ SCREEN: DESIGNER BOARD ══════════ -->
+        <section class="screen" id="screen-board">
+            <div
+                style="display:flex;align-items:center;gap:8px;flex-shrink:0;padding-bottom:12px;border-bottom:1px solid var(--border);">
+                <div class="designer-tabs" id="designerTabs" style="border:none;padding:0;">
+                    <!-- Tabs for desktop/wide screens -->
+                </div>
+                <div id="designerSelectMobile" class="custom-designer-selector mobile-only"
+                    onclick="toggleDesignerDropdown(event)">
+                    <div id="mobileActiveDesigner" class="selected-pill-wrap">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div id="designerDropdownList" class="designer-dropdown-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                <div class="board-controls"
+                    style="display:flex;align-items:center;gap:12px;margin-left:auto;flex-shrink:0">
+                    <div class="week-nav-mini"
+                        style="display:flex;align-items:center;background:var(--bg3);padding:2px;border:1px solid var(--border);border-radius:6px;gap:2px">
+                        <button class="btn-ghost sm" onclick="changeBoardWeek(-1)"
+                            style="width:28px;height:28px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:4px">←</button>
+                        <span id="boardWeekLabel"
+                            style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:0 10px;color:var(--text);min-width:60px;text-align:center">WEEK
+                            ?</span>
+                        <button class="btn-ghost sm" onclick="changeBoardWeek(1)"
+                            style="width:28px;height:28px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:4px">→</button>
+                    </div>
+                    <button class="btn-ghost sm" id="boardWeekToggle" onclick="toggleBoardWeekFilter()"
+                        style="height:32px;padding:0 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.02em;border:1px solid var(--border);border-radius:6px;background:var(--bg3)">
+                        WEEK ? ONLY
+                    </button>
+                </div>
+            </div>
+
+            <div class="board-cols" id="boardCols">
+                <div class="board-col">
+                    <div class="board-col-hdr"><span class="col-dot yellow"></span>Pending<span class="col-cnt"
+                            id="bc-pending">0</span></div>
+                    <div class="board-col-body" id="bb-pending" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'pending')"></div>
+                </div>
+                <div class="board-col">
+                    <div class="board-col-hdr"><span class="col-dot blue"></span>In Progress<span class="col-cnt"
+                            id="bc-inprogress">0</span></div>
+                    <div class="board-col-body" id="bb-inprogress" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'inprogress')"></div>
+                </div>
+                <div class="board-col">
+                    <div class="board-col-hdr"><span class="col-dot orange"></span>Waiting<span class="col-cnt"
+                            id="bc-waiting">0</span></div>
+                    <div class="board-col-body" id="bb-waiting" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'waiting')"></div>
+                </div>
+                <div class="board-col">
+                    <div class="board-col-hdr"><span class="col-dot green"></span>Done<span class="col-cnt"
+                            id="bc-done">0</span></div>
+                    <div class="board-col-body" id="bb-done" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'done')"></div>
+                </div>
+                <div class="board-col">
+                    <div class="board-col-hdr"><span class="col-dot orange"></span>Carry Over<span class="col-cnt" id="bc-carryover">0</span></div>
+                    <div class="board-col-body" id="bb-carryover"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════ SCREEN: WEEKLY TRACKER ══════════ -->
+        <section class="screen" id="screen-weekly">
+            <div class="weekly-header">
+                <div class="week-selector">
+                    <button class="btn-ghost sm" onclick="changeWeek(-1)">←</button>
+                    <span class="week-label" id="weekLabel">Week 1</span>
+                    <button class="btn-ghost sm" onclick="changeWeek(1)">→</button>
+                </div>
+                <div class="pill-scroll-wrap">
+                    <div class="designer-pills" id="weekDesignerPills">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                <button class="btn-ghost sm" onclick="openExtraLogModal()">+ Add Extra Work</button>
+            </div>
+
+            <div class="weekly-stats" id="weeklyStats">
+                <div class="kpi-card sm"><span class="kpi-label">Total H Score</span><span class="kpi-val accent"
+                        id="wst-h">—</span></div>
+                <div class="kpi-card sm"><span class="kpi-label">Tasks Done</span><span class="kpi-val green"
+                        id="wst-done">—</span></div>
+                <div class="kpi-card sm"><span class="kpi-label">Days Present</span><span class="kpi-val"
+                        id="wst-present">—</span></div>
+                <div class="kpi-card sm"><span class="kpi-label">Miiro Updated</span><span class="kpi-val"
+                        id="wst-miiro">—</span></div>
+                <div class="kpi-card sm"><span class="kpi-label">BM Sent</span><span class="kpi-val"
+                        id="wst-bm">—</span></div>
+            </div>
+
+            <div class="weekly-table-wrap">
+                <table class="weekly-table" id="weeklyTable">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Date</th>
+                            <th>Assigned Task</th>
+                            <th>H Score</th>
+                            <th>Completed Task</th>
+                            <th>Present</th>
+                            <th>Miiro</th>
+                            <th>BM</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="weeklyBody">
+                        <!-- rendered by JS -->
+                    </tbody>
+                    <tfoot>
+                        <tr class="weekly-total-row">
+                            <td colspan="3" style="text-align:right;color:var(--text2);font-size:11px;font-weight:600;">
+                                WEEK TOTAL</td>
+                            <td class="total-h accent mono" id="totalH">0.0</td>
+                            <td colspan="4"></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
+        <!-- ══════════ SCREEN: KPI ══════════ -->
+        <section class="screen" id="screen-kpi">
+
+            <!-- KPI View Toggle + Month selector -->
+            <div class="kpi-controls">
+                <div class="view-toggle" style="width:auto">
+                    <button class="vt-btn active" id="kv-week" onclick="switchKPIView('week')">Week View</button>
+                    <button class="vt-btn" id="kv-month" onclick="switchKPIView('month')">Month View</button>
+                </div>
+                <div class="month-selector" id="weekKPISelector">
+                    <button class="btn-ghost sm" onclick="changeKPIWeek(-1)">←</button>
+                    <span class="week-label" id="kpiWeekLabel">Week ?</span>
+                    <button class="btn-ghost sm" onclick="changeKPIWeek(1)">→</button>
+                </div>
+                <div class="month-selector" id="monthSelector" style="display:none">
+                    <button class="btn-ghost sm" onclick="changeMonth(-1)">←</button>
+                    <span class="week-label" id="monthLabel">March 2026</span>
+                    <button class="btn-ghost sm" onclick="changeMonth(1)">→</button>
+                </div>
+                <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+                    <button class="btn-ghost sm" id="closeMonthBtn" onclick="confirmMonthClose()"
+                        style="display:none;color:var(--orange);border-color:rgba(249,115,22,0.4)">
+                        📅 Close Month & Save KPI
+                    </button>
+                </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div class="kpi-lb-wrap">
+                <div class="panel">
+                    <div class="panel-hdr"><span id="lbTitle">Leaderboard</span><span class="panel-tag"
+                            id="lbTag">Auto-calculated</span></div>
+                    <div class="lb-header">
+                        <span>Designer</span>
+                        <span>Pr</span>
+                        <span>Mi</span>
+                        <span>BM</span>
+                        <span>H Score</span>
+                        <span>Total KPI</span>
+                    </div>
+                    <div id="lbRows"></div>
+                </div>
+            </div>
+
+            <!-- Per-designer KPI table (Week View) -->
+            <div id="weekKPISection">
+                <div class="pill-scroll-wrap">
+                    <div class="kpi-designer-sel">
+                        <button class="pill active" data-d="anu" onclick="switchKPIDesigner('anu')">Anu</button>
+                        <button class="pill" data-d="asif" onclick="switchKPIDesigner('asif')">Asif</button>
+                        <button class="pill" data-d="aysha" onclick="switchKPIDesigner('aysha')">Aysha</button>
+                        <button class="pill" data-d="safnas" onclick="switchKPIDesigner('safnas')">Safnas</button>
+                    </div>
+                </div>
+
+                <!-- Approvals Section -->
+                <div id="kpiApprovalsSection" style="margin-bottom:20px;display:none">
+                    <div class="panel" style="border-color:var(--orange)">
+                        <div class="panel-hdr"><span style="color:var(--orange)">Pending Task Approvals</span><span
+                                class="panel-tag">Review designer-submitted logs</span></div>
+                        <div id="approvalList" style="padding:15px;display:flex;flex-wrap:wrap;gap:12px">
+                            <!-- JS Rendered cards -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-hdr">
+                        <span id="kpiPanelTitle">Anu — Task KPI</span>
+                        <span class="panel-tag">Enter Quality & Impact scores below</span>
+                    </div>
+                    <div class="kpi-table-wrap">
+                        <table class="kpi-table">
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>Client</th>
+                                    <th>Week</th>
+                                    <th>Deadline<br><small>Index (0–10)</small></th>
+                                    <th>H Score<br><small>Index (0–10)</small></th>
+                                    <th>Quality<br><small>Index (1–10)</small></th>
+                                    <th>Attitude<br><small>Index (1–10)</small></th>
+                                    <th>Total Score</th>
+                                    <th>Carry Over</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kpiTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly KPI section -->
+            <div id="monthKPISection" style="display:none">
+                <div class="panel">
+                    <div class="panel-hdr">
+                        <span id="monthKPIPanelTitle">Monthly KPI — — —</span>
+                        <span class="panel-tag">Aggregated from all weeks in this month</span>
+                    </div>
+                    <div class="kpi-table-wrap">
+                        <table class="kpi-table">
+                            <thead>
+                                <tr>
+                                    <th>Designer</th>
+                                    <th>Tasks Done</th>
+                                    <th>Carry Overs</th>
+                                    <th>Deadline<br><small>Avg Index</small></th>
+                                    <th>H Score<br><small>Avg Index</small></th>
+                                    <th>Quality<br><small>Avg Index</small></th>
+                                    <th>Attitude<br><small>Avg Index</small></th>
+                                    <th>Monthly Total</th>
+                                    <th>Completion %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthKPIBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Closed Month History -->
+                <div class="panel">
+                    <div class="panel-hdr"><span>Monthly KPI Records</span><span class="panel-tag">Permanent
+                            snapshots</span></div>
+                    <div id="monthHistoryRows"></div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ══════════ SCREEN: SPRINT CLOSE ══════════ -->
+        <section class="screen" id="screen-sprintclose">
+            <div class="sprint-hero">
+                <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+                    <button class="btn-ghost" onclick="changeSprintWeek(-1)" style="color:white">←</button>
+                    <div class="sprint-week-label" id="sprintWeekLabel">Week ? Close</div>
+                    <button class="btn-ghost" onclick="changeSprintWeek(1)" style="color:white">→</button>
+                </div>
+                <p class="sprint-desc">Review this week's completion before closing. Incomplete tasks will be flagged as
+                    <strong>Carry Over</strong> and carried into next week. This snapshot is permanent.
+                </p>
+            </div>
+
+            <div class="sprint-grid" id="sprintGrid">
+                <!-- 4 designer summary cards, rendered by JS -->
+            </div>
+
+            <div class="sprint-summary panel">
+                <div class="panel-hdr"><span>Week Summary</span></div>
+                <div class="sprint-summary-stats">
+                    <div class="ss-stat"><span class="ss-val" id="ss-assigned">—</span><span
+                            class="ss-label">Assigned</span></div>
+                    <div class="ss-stat"><span class="ss-val green" id="ss-completed">—</span><span
+                            class="ss-label">Completed</span></div>
+                    <div class="ss-stat"><span class="ss-val orange" id="ss-carryover">—</span><span
+                            class="ss-label">Carry Over</span></div>
+                    <div class="ss-stat"><span class="ss-val accent" id="ss-rate">—%</span><span
+                            class="ss-label">Completion Rate</span></div>
+                </div>
+            </div>
+
+            <div class="sprint-actions">
+                <button class="btn-ghost lg" onclick="switchScreen('works')">Cancel</button>
+                <button class="btn-ghost lg" onclick="resetToWeekOne()" style="color:var(--orange)">
+                    Reset to Week 1
+                </button>
+                <button class="btn-danger" id="closeWeekBtn" onclick="confirmWeekClose()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18" />
+                        <path d="M6 6l12 12" />
+                    </svg>
+                    Close Week & Carry Over Incomplete Tasks
+                </button>
+            </div>
+        </section>
+
+        <!-- ══════════ SCREEN: HISTORY ══════════ -->
+        <section class="screen" id="screen-history">
+            <div class="kpi-bar">
+                <div class="kpi-card"><span class="kpi-label">Weeks Closed</span><span class="kpi-val"
+                        id="hs-weeks">—</span></div>
+                <div class="kpi-card"><span class="kpi-label">Avg Completion</span><span class="kpi-val green"
+                        id="hs-avg">—%</span></div>
+                <div class="kpi-card"><span class="kpi-label">Total Tasks Done</span><span class="kpi-val accent"
+                        id="hs-done">—</span></div>
+                <div class="kpi-card"><span class="kpi-label">Total Carry Overs</span><span class="kpi-val orange"
+                        id="hs-carry">—</span></div>
+                <div style="margin-left:auto;display:flex;align-items:center">
+                    <button class="btn-ghost sm" onclick="confirmClearTasks()"
+                        style="color:var(--red);border-color:rgba(239,68,68,0.3);margin-right:8px">
+                        🗑 Clear All Tasks
+                    </button>
+                    <button class="btn-ghost sm" onclick="confirmClearHistory()"
+                        style="color:var(--red);border-color:rgba(239,68,68,0.3)">
+                        📜 Clear History
+                    </button>
+                </div>
+            </div>
+            
+            <div class="segment-wrap">
+                <button class="segment-btn active" id="hist-week" onclick="switchHistView('week')">Weekly Close</button>
+                <button class="segment-btn" id="hist-month" onclick="switchHistView('month')">Monthly Close</button>
+            </div>
+
+            <div class="history-timeline" id="historyTimeline"></div>
+            <div id="historyMonthlyTimeline" style="display:none; padding-bottom: 24px;"></div>
+        </section>
+
+        <!-- ══════════ SCREEN: CLIENTS ══════════ -->
+        <section class="screen" id="screen-clients">
+            <div class="filter-row">
+                <input class="search-box" id="clientSearch" type="text" placeholder="Search clients…"
+                    oninput="filterClients()" />
+                <select class="filter-sel" id="clientStatusFilter" onchange="filterClients()">
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="new">New</option>
+                    <option value="hold">On Hold</option>
+                    <option value="completed">Completed</option>
+                </select>
+                <button class="btn-primary" onclick="openAddClientPanel()">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Add Client
+                </button>
+            </div>
+            <div class="client-grid" id="clientGrid"></div>
+        </section>
+
+        <!-- ══════════ SCREEN: SETTINGS ══════════ -->
+        <section class="screen" id="screen-settings">
+            <div class="settings-wrap">
+
+                <div class="panel">
+                    <div class="panel-hdr"><span>Google Sheets Connection</span></div>
+                    <div class="settings-list">
+                        <div class="setting-row">
+                            <div><span class="sn">Sheet 1 ID — Tasks (Creative Direction)</span><span class="sd">BM:
+                                    Creative Direction spreadsheet</span></div>
+                            <div class="sc"><input class="setting-inp" type="text" id="cfg-s1"
+                                    placeholder="1HG0X..." /><button class="btn-sm"
+                                    onclick="saveCfg('s1')">Save</button></div>
+                        </div>
+                        <div class="setting-row">
+                            <div><span class="sn">Sheet 2 ID — KPI & Evaluation</span><span class="sd">Auto-syncs from
+                                    Apps Script</span></div>
+                            <div class="sc"><input class="setting-inp" type="text" id="cfg-s2"
+                                    placeholder="1D5fQ..." /><button class="btn-sm"
+                                    onclick="saveCfg('s2')">Save</button></div>
+                        </div>
+                        <div class="setting-row">
+                            <div><span class="sn">Sheet 3 ID — Daily Week Task</span><span class="sd">Designer daily
+                                    logs</span></div>
+                            <div class="sc"><input class="setting-inp" type="text" id="cfg-s3"
+                                    placeholder="1Klc0..." /><button class="btn-sm"
+                                    onclick="saveCfg('s3')">Save</button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-hdr"><span>Apps Script Backend</span></div>
+                    <div class="settings-list">
+                        <div class="setting-row">
+                            <div><span class="sn">Web App URL</span><span class="sd">Deploy api.gs as Web App → paste
+                                    URL here to enable task creation & week close</span></div>
+                            <div class="sc"><input class="setting-inp" type="text" id="cfg-apiUrl"
+                                    placeholder="https://script.google.com/macros/s/.../exec" /><button class="btn-sm"
+                                    onclick="saveCfg('apiUrl')">Save</button></div>
+                        </div>
+                        <div class="setting-row">
+                            <div><span class="sn">API Status</span><span class="sd">Live write operations require the
+                                    Web App to be deployed</span></div>
+                            <div class="sc"><span class="conn-badge" id="apiStatus">Not configured</span><button
+                                    class="btn-sm" onclick="testAPI()">Test</button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-hdr"><span>Weekly Config</span></div>
+                    <div class="settings-list">
+                        <div class="setting-row">
+                            <div><span class="sn">Current Week Number</span><span class="sd">Used for sprint tracking
+                                    (auto-calculated, can override)</span></div>
+                            <div class="sc"><input class="setting-inp short" type="number" id="cfg-weekNum"
+                                    placeholder="1" /><button class="btn-sm" onclick="saveCfg('weekNum')">Save</button>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div><span class="sn">Week Start Date</span><span class="sd">Date of Week 1 start (used to
+                                    auto-calculate current week)</span></div>
+                            <div class="sc"><input class="setting-inp" type="date" id="cfg-weekStart" /><button
+                                    class="btn-sm" onclick="saveCfg('weekStart')">Save</button></div>
+                        </div>
+                        <div class="setting-row">
+                            <div><span class="sn">Debug & Testing</span><span class="sd">Quickly reset the system to
+                                    Week 1</span></div>
+                            <div class="sc">
+                                <button class="btn-ghost sm" onclick="openResetModal()"
+                                    style="color:var(--orange);border-color:var(--orange)">
+                                    🔄 Reset to Week 1
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Management -->
+                <div class="panel">
+                    <div class="panel-hdr"><span>Team Members</span><span class="panel-tag">Add/remove designers & video
+                            editors</span></div>
+                    <div class="team-grid" id="teamGrid"></div>
+                    <div class="team-add-form">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input class="form-input" type="text" id="tm-name" placeholder="e.g. Riya" />
+                        </div>
+                        <div class="form-group">
+                            <label>Role</label>
+                            <select class="form-input" id="tm-role">
+                                <option value="designer">Designer</option>
+                                <option value="senior_designer">Senior Designer</option>
+                                <option value="video">Video Editor</option>
+                                <option value="cd">Creative Director</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Match Names (comma-sep)</label>
+                            <input class="form-input" type="text" id="tm-match" placeholder="riya,riyaj" />
+                        </div>
+                        <div class="form-group">
+                            <label>Avatar Color</label>
+                            <div style="display:flex;gap:4px">
+                                <input class="form-input" type="text" id="tm-color" placeholder="#7c6af4" style="flex:1" />
+                                <button class="btn-ghost" onclick="randomizeTeamColor('tm-color')" style="padding:0 8px;font-size:12px;height:34.5px" title="Randomize Color">🎲</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Login Username</label>
+                            <input class="form-input" type="text" id="tm-user" placeholder="riya_login" />
+                        </div>
+                        <div class="form-group">
+                            <label>Login Password</label>
+                            <div class="pass-wrap">
+                                <input class="form-input" type="password" id="tm-pass" placeholder="••••••••" />
+                                <button class="pass-toggle" type="button" onclick="togglePass('tm-pass', this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn-primary" style="align-self: flex-end; width: 100%; margin-top: 10px;" onclick="addTeamMember()">Add Team Member & Create Account</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-hdr"><span>How to Set Up Apps Script (api.gs)</span></div>
+                    <div class="setup-steps">
+                        <div class="setup-step"><span class="step-num">1</span><span>Open <strong>Sheet 2 (KPI)</strong>
+                                → Extensions → Apps Script</span></div>
+                        <div class="setup-step"><span class="step-num">2</span><span>Delete any existing code → paste
+                                the contents of <code>studio/api.gs</code></span></div>
+                        <div class="setup-step"><span class="step-num">3</span><span>Click <strong>Deploy → New
+                                    Deployment → Web App</strong></span></div>
+                        <div class="setup-step"><span class="step-num">4</span><span>Set "Execute as: Me" and "Who has
+                                access: Anyone"</span></div>
+                        <div class="setup-step"><span class="step-num">5</span><span>Copy the Web App URL → paste in the
+                                field above → Save</span></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ══════════ NEW TASK PANEL (slide-in) ══════════ -->
+    <div class="panel-overlay" id="panelOverlay" onclick="closeNewTaskPanel()"></div>
+    <div class="slide-panel" id="newTaskPanel">
+        <div class="slide-panel-hdr">
+            <span class="slide-panel-title">New Task</span>
+            <button class="modal-close" onclick="closeNewTaskPanel()">×</button>
+        </div>
+        <div class="slide-panel-body">
+            <div class="form-group" style="position:relative">
+                <label>Client</label>
+                <input class="form-input" type="text" id="nt-client" placeholder="e.g. GAMIO, Brand Mantra…" autocomplete="off" oninput="showClientSuggestions(this.value)" onfocus="showClientSuggestions(this.value)" />
+                <div id="nt-client-suggestions" class="suggestions-list"></div>
+            </div>
+            <div class="form-group">
+                <label>Task Description</label>
+                <textarea class="form-input" id="nt-task" rows="3" placeholder="Describe the work…"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Assign To</label>
+                <div class="assign-grid" id="assignGrid">
+                    <button class="assign-btn" data-d="Anu" onclick="selectDesigner(this)">
+                        <span class="dtab-av sm" style="background:linear-gradient(135deg,#7c6af4,#4f3de8)">A</span>Anu
+                    </button>
+                    <button class="assign-btn" data-d="Asif" onclick="selectDesigner(this)">
+                        <span class="dtab-av sm" style="background:linear-gradient(135deg,#f97316,#ef4444)">A</span>Asif
+                    </button>
+                    <button class="assign-btn" data-d="AYSH" onclick="selectDesigner(this)">
+                        <span class="dtab-av sm"
+                            style="background:linear-gradient(135deg,#22c55e,#16a34a)">A</span>Aysha
+                    </button>
+                    <button class="assign-btn" data-d="Safnas" onclick="selectDesigner(this)">
+                        <span class="dtab-av sm"
+                            style="background:linear-gradient(135deg,#eab308,#ca8a04)">S</span>Safnas
+                    </button>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Design Due</label>
+                    <input class="form-input" type="date" id="nt-designdue" />
+                </div>
+                <div class="form-group">
+                    <label>Final Due</label>
+                    <input class="form-input" type="date" id="nt-finaldue" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Week #</label>
+                    <input class="form-input" type="number" id="nt-week" min="1" placeholder="Auto" />
+                </div>
+                <div class="form-group">
+                    <label>H Score Target</label>
+                    <input class="form-input" type="number" id="nt-hscore" min="0" step="0.5" placeholder="e.g. 8" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Notes (optional)</label>
+                <textarea class="form-input" id="nt-notes" rows="2" placeholder="Any additional context…"></textarea>
+            </div>
+        </div>
+        <div class="slide-panel-footer">
+            <button class="btn-ghost" onclick="closeNewTaskPanel()">Cancel</button>
+            <button class="btn-primary" onclick="submitNewTask()">Add Task</button>
+        </div>
+    </div>
+
+    <!-- ══════════ TASK DETAIL MODAL ══════════ -->
+    <div class="modal-overlay" id="taskModalOverlay" onclick="closeTaskModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-hdr">
+                <span class="modal-title" id="taskModalTitle">Task Detail</span>
+                <button class="modal-close" onclick="closeTaskModal()">×</button>
+            </div>
+            <div class="modal-body" id="taskModalBody"></div>
+        </div>
+    </div>
+
+    <!-- ══════════ WEEK CLOSE CONFIRM MODAL ══════════ -->
+    <div class="modal-overlay" id="closeConfirmOverlay">
+        <div class="modal sm">
+            <div class="modal-hdr">
+                <span class="modal-title">Confirm Week Close</span>
+                <button class="modal-close"
+                    onclick="document.getElementById('closeConfirmOverlay').classList.remove('open')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text2);font-size:13px;line-height:1.6">This will permanently snapshot this week's
+                    data. Incomplete tasks will be marked <strong style="color:var(--orange)">Carry Over</strong> and
+                    moved to next week. <strong>This cannot be undone.</strong></p>
+                <div class="confirm-stats" id="confirmStats"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-ghost"
+                    onclick="document.getElementById('closeConfirmOverlay').classList.remove('open')">Go Back</button>
+                <button class="btn-danger" onclick="executeWeekClose()">Yes, Close Week</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Client Panel -->
+    <div class="panel-overlay" id="clientPanelOverlay" onclick="closeAddClientPanel()"></div>
+    <div class="slide-panel" id="addClientPanel">
+        <div class="slide-panel-hdr">
+            <span class="slide-panel-title" id="clientPanelTitle">Add Client</span>
+            <button class="modal-close" onclick="closeAddClientPanel()">×</button>
+        </div>
+        <div class="slide-panel-body">
+            <div class="form-group"><label>Client Name *</label><input class="form-input" type="text" id="cl-name"
+                    placeholder="e.g. Brand Mantra" /></div>
+            <div class="form-group">
+                <label>Status</label>
+                <select class="form-input" id="cl-status">
+                    <option value="active">Active</option>
+                    <option value="new">New Lead</option>
+                    <option value="hold">On Hold</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Contact Person</label><input class="form-input" type="text" id="cl-contact"
+                    placeholder="e.g. Rahul +91 9876543210" /></div>
+            <div class="form-group"><label>Industry / Category</label><input class="form-input" type="text"
+                    id="cl-category" placeholder="e.g. E-commerce, SaaS…" /></div>
+            <div class="form-group"><label>Notes</label><textarea class="form-input" id="cl-notes" rows="3"
+                    placeholder="Any context, deliverables, preferences…"></textarea></div>
+        </div>
+        <div class="slide-panel-footer">
+            <button class="btn-ghost" onclick="closeAddClientPanel()">Cancel</button>
+            <button class="btn-primary" onclick="submitClient()">Save Client</button>
+        </div>
+    </div>
+
+    <!-- Month Close Confirm Modal -->
+    <div class="modal-overlay" id="monthCloseOverlay">
+        <div class="modal sm" onclick="event.stopPropagation()">
+            <div class="modal-hdr">
+                <span class="modal-title">Close Month & Save KPI</span>
+                <button class="modal-close"
+                    onclick="document.getElementById('monthCloseOverlay').classList.remove('open')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text2);font-size:13px;line-height:1.6">This will permanently save the monthly KPI
+                    snapshot for <strong id="monthCloseLabel">this month</strong>. Current scores will be aggregated per
+                    designer and stored. <strong>Cannot be undone.</strong></p>
+                <div class="confirm-stats" id="monthCloseStats" style="margin-top:12px"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-ghost"
+                    onclick="document.getElementById('monthCloseOverlay').classList.remove('open')">Cancel</button>
+                <button class="btn-primary" onclick="executeMonthClose()">Save Monthly KPI</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear History Confirm Modal -->
+    <div class="modal-overlay" id="clearHistoryOverlay">
+        <div class="modal sm" onclick="event.stopPropagation()">
+            <div class="modal-hdr">
+                <span class="modal-title" style="color:var(--red)">Clear History</span>
+                <button class="modal-close"
+                    onclick="document.getElementById('clearHistoryOverlay').classList.remove('open')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text2);font-size:13px;line-height:1.6">
+                    This will permanently delete <strong>all closed week records</strong> and <strong>all monthly KPI
+                        snapshots</strong>.
+                    Task data in Works will not be deleted.
+                    <br><br><strong style="color:var(--red)">This cannot be undone.</strong>
+                </p>
+                <div
+                    style="margin-top:12px;padding:10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:6px;font-size:12px;color:var(--red)">
+                    ⚠ Type <strong>CLEAR</strong> to confirm:
+                    <input class="form-input" type="text" id="clearConfirmInput" placeholder="Type CLEAR"
+                        style="margin-top:8px;border-color:rgba(239,68,68,0.3)" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-ghost"
+                    onclick="document.getElementById('clearHistoryOverlay').classList.remove('open')">Cancel</button>
+                <button class="btn-danger" onclick="executeClearHistory()">Yes, Delete All History</button>
+            </div>
+        </div>
+    </div>
+    <!-- Clear Tasks Confirm Modal -->
+    <div class="modal-overlay" id="clearTasksOverlay">
+        <div class="modal sm" onclick="event.stopPropagation()">
+            <div class="modal-hdr">
+                <span class="modal-title" style="color:var(--red)">Clear All Tasks</span>
+                <button class="modal-close"
+                    onclick="document.getElementById('clearTasksOverlay').classList.remove('open')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text2);font-size:13px;line-height:1.6">
+                    This will permanently delete <strong>all active/pending tasks</strong> in the Works section.
+                    History and snapshots will not be affected.
+                    <br><br><strong style="color:var(--red)">This cannot be undone.</strong>
+                </p>
+                <div
+                    style="margin-top:12px;padding:10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:6px;font-size:12px;color:var(--red)">
+                    ⚠ Type <strong>CLEAR</strong> to confirm:
+                    <input class="form-input" type="text" id="clearTasksConfirmInput" placeholder="Type CLEAR"
+                        style="margin-top:8px;border-color:rgba(239,68,68,0.3)" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-ghost"
+                    onclick="document.getElementById('clearTasksOverlay').classList.remove('open')">Cancel</button>
+                <button class="btn-danger" onclick="executeClearTasks()">Yes, Delete All Tasks</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <script src="app.js"></script>
+    <!-- Extra Work Overlay -->
+    <div class="modal-overlay" id="extraLogOverlay">
+        <div class="modal-box" style="max-width:400px">
+            <div class="modal-hdr">
+                <h3>Add Extra Work</h3>
+                <button class="close-btn" onclick="closeExtraLogModal()">&#x2715;</button>
+            </div>
+            <div class="modal-body" style="padding:20px">
+                <div class="form-group">
+                    <label>Client Name</label>
+                    <input type="text" id="ex-client" placeholder="e.g. Miiro" class="setting-inp" />
+                </div>
+                <div class="form-group">
+                    <label>Task Description</label>
+                    <input type="text" id="ex-task" placeholder="e.g. Logo Concept" class="setting-inp" />
+                </div>
+                <div class="form-group" id="ex-h-group">
+                    <label>H Score Target</label>
+                    <input type="number" step="0.5" id="ex-h" placeholder="0.0" class="setting-inp" />
+                </div>
+                <div style="margin-top:20px;display:flex;gap:10px">
+                    <button class="btn-primary" onclick="submitExtraLog()" style="flex:1">Create & Log</button>
+                    <button class="btn-ghost" onclick="closeExtraLogModal()" style="flex:1">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Week Overlay -->
+    <div class="modal-overlay" id="resetModalOverlay">
+        <div class="modal-box" style="max-width:400px">
+            <div class="modal-hdr">
+                <h3>Dangerous Action: Reset System</h3>
+                <button class="close-btn" onclick="closeResetModal()">&#x2715;</button>
+            </div>
+            <div class="modal-body" style="padding:20px;text-align:center">
+                <p style="color:var(--text2);margin-bottom:20px">This will reset current week to 1 and update the system
+                    start date to this Monday. All manual week overrides will be cleared. Continue?</p>
+                <div style="display:flex;gap:10px">
+                    <button class="btn-primary" onclick="executeResetToWeek1()"
+                        style="flex:1;background:var(--red);border-color:var(--red)">Yes, Reset Now</button>
+                    <button class="btn-ghost" onclick="closeResetModal()" style="flex:1">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Edit Member Overlay -->
+    <div class="modal-overlay" id="editMemberOverlay">
+        <div class="modal-box" style="max-width:420px">
+            <div class="modal-hdr">
+                <h3>Edit Team Member</h3>
+                <button class="close-btn" onclick="closeEditMember()">&#x2715;</button>
+            </div>
+            <div class="modal-body" style="padding:20px">
+                <div class="form-group" style="margin-bottom:14px">
+                    <label
+                        style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Name</label>
+                    <input class="setting-inp" type="text" id="edit-tm-name" placeholder="e.g. Anu"
+                        style="width:100%;margin-top:4px" />
+                </div>
+                <div class="form-group" style="margin-bottom:14px">
+                    <label
+                        style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Role</label>
+                    <select class="setting-inp" id="edit-tm-role" style="width:100%;margin-top:4px">
+                        <option value="designer">Designer</option>
+                        <option value="senior_designer">Senior Designer</option>
+                        <option value="video">Video Editor</option>
+                        <option value="cd">Creative Director</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:14px">
+                    <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Match
+                        Names <small>(comma-separated, lowercase)</small></label>
+                    <input class="setting-inp" type="text" id="edit-tm-match" placeholder="anu,anusree"
+                        style="width:100%;margin-top:4px" />
+                </div>
+                <div class="form-group" style="margin-bottom:14px">
+                    <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Avatar Color</label>
+                    <div style="display:flex;gap:4px;margin-top:4px">
+                        <input class="setting-inp" type="text" id="edit-tm-color" placeholder="#7c6af4" style="flex:1" />
+                        <button class="btn-ghost" onclick="randomizeTeamColor('edit-tm-color')" style="padding:0 8px;font-size:12px;height:34.5px" title="Randomize Color">🎲</button>
+                    </div>
+                </div>
+                <div id="account-status-area" style="margin-top:16px; padding:12px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px dashed var(--border)">
+                    <p style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">System Account</p>
+                    <div id="has-account-msg" style="display:none; font-size:12px; color:var(--green)">
+                        ✓ This member has a linked system account.
+                        <p style="font-size:10px; color:var(--text3); margin-top:4px">Use the backend management to reset passwords.</p>
+                    </div>
+                    <div id="no-account-form">
+                        <div class="form-group" style="margin-bottom:10px">
+                            <label style="font-size:10px;color:var(--text3)">New Username</label>
+                            <input class="setting-inp" type="text" id="edit-tm-user" placeholder="login_name" style="width:100%;margin-top:4px;font-size:12px" />
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:10px;color:var(--text3)">New Password</label>
+                            <div class="pass-wrap">
+                                <input class="setting-inp" type="password" id="edit-tm-pass" placeholder="••••••••" style="width:100%;margin-top:4px;font-size:12px" />
+                                <button class="pass-toggle" type="button" onclick="togglePass('edit-tm-pass', this)" style="top:4px">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn-sm" style="margin-top:10px; width:100%; border-color:var(--accent); color:var(--accent)" onclick="createAccountForMember()">Create Linked Account</button>
+                    </div>
+                </div>
+
+                <p style="font-size:11px;color:var(--text3);margin:16px 0">&#9432; Member key cannot be changed.
+                    Remove and re-add to change the key.</p>
+                <div style="display:flex;gap:10px">
+                    <button class="btn-primary" onclick="saveEditMember()" style="flex:1">Save Changes</button>
+                    <button class="btn-ghost" onclick="closeEditMember()" style="flex:1">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Generic Confirm Modal -->
+    <div class="modal-overlay" id="confirmModalOverlay">
+        <div class="modal-box" style="max-width:380px">
+            <div class="modal-hdr">
+                <h3 id="confirm-title">Confirm Action</h3>
+                <button class="close-btn" onclick="closeConfirmModal()">&#x2715;</button>
+            </div>
+            <div class="modal-body" style="padding:24px;text-align:center">
+                <p id="confirm-msg" style="color:var(--text2);margin-bottom:24px;line-height:1.5">Are you sure you want to proceed with this action?</p>
+                <div style="display:flex;gap:12px">
+                    <button class="btn-primary" id="confirm-yes-btn" style="flex:1">Yes, Proceed</button>
+                    <button class="btn-ghost" onclick="closeConfirmModal()" style="flex:1">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom-nav">
+        <button class="bn-item active" onclick="switchScreen('works')" id="bn-works">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2" />
+                <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
+            </svg>
+            <span>Works</span>
+        </button>
+        <button class="bn-item" onclick="switchScreen('board')" id="bn-board">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+            </svg>
+            <span>Board</span>
+        </button>
+        <button class="bn-item" onclick="switchScreen('kpi')" id="bn-kpi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+            <span>KPI</span>
+        </button>
+        <button class="bn-item" onclick="switchScreen('settings')" id="bn-settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                    d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+            </svg>
+            <span>Settings</span>
+        </button>
+    </div>
+</body>
+
+</html>
