@@ -910,15 +910,22 @@ async function saveTaskChanges(id) {
 }
 
 async function deleteTask(id) {
+    const t = allTasks.find(x => x.id === id);
     showConfirm(
         'Delete Task',
         'Are you sure you want to permanently delete this task?',
         async () => {
             try {
-                const res = await apiFetch(`${API_BASE_URL}/tasks/${id}`, {
-                    method: 'DELETE'
-                });
-                if (!res || !res.ok) throw new Error();
+                if (t && t.source === 'local') {
+                    allTasks = allTasks.filter(x => x.id !== id);
+                    saveLocalTasks();
+                } else {
+                    const res = await apiFetch(`${API_BASE_URL}/tasks/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (!res || !res.ok) throw new Error();
+                }
+                
                 toast('Task deleted', 'success');
                 closeTaskModal();
                 await loadData();
@@ -950,11 +957,16 @@ async function updateTaskStatus(id, newStatus) {
     if (newStatus === 'done') updates.closeDate = new Date().toISOString().split('T')[0];
 
     try {
-        const res = await apiFetch(`${API_BASE_URL}/tasks/${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify(updates)
-        });
-        if (!res || !res.ok) throw new Error('Failed to update status');
+        if (t.source === 'local') {
+            Object.assign(t, updates);
+            saveLocalTasks();
+        } else {
+            const res = await apiFetch(`${API_BASE_URL}/tasks/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify(updates)
+            });
+            if (!res || !res.ok) throw new Error('Failed to update status');
+        }
         
         toast(`Status: ${statusLabel(newStatus)}`, 'success');
         await loadData();
