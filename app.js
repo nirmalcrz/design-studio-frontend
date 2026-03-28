@@ -3330,14 +3330,20 @@ async function approveTask(tid) {
     const finalH = hInp ? parseFloat(hInp.value) : (t.hTarget || 0);
 
     try {
-        const res = await apiFetch(`${API_BASE_URL}/tasks/${tid}`, {
-            method: 'PATCH',
-            body: JSON.stringify({
-                needsApproval: false,
-                hTarget: finalH
-            })
-        });
-        if (!res || !res.ok) throw new Error();
+        if (t.source === 'local') {
+            t.needsApproval = false;
+            t.hTarget = finalH;
+            saveLocalTasks();
+        } else {
+            const res = await apiFetch(`${API_BASE_URL}/tasks/${tid}`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    needsApproval: false,
+                    hTarget: finalH
+                })
+            });
+            if (!res || !res.ok) throw new Error();
+        }
         
         toast('Task approved and added to KPI', 'success');
         await loadData();
@@ -3348,23 +3354,25 @@ async function approveTask(tid) {
 }
 
 async function dismissTask(tid) {
-    if (!confirm('Are you sure you want to dismiss this log ? It will be permanently removed.')) return;
+    if (!confirm('Are you sure you want to dismiss this log? It will be permanently removed.')) return;
     
+    const t = allTasks.find(x => x.id === tid);
     try {
-        const res = await apiFetch(`${API_BASE_URL}/tasks/${tid}`, {
-            method: 'DELETE'
-        });
-        if (!res || !res.ok) throw new Error();
+        if (t && t.source === 'local') {
+            allTasks = allTasks.filter(x => x.id !== tid);
+            saveLocalTasks();
+        } else {
+            const res = await apiFetch(`${API_BASE_URL}/tasks/${tid}`, {
+                method: 'DELETE'
+            });
+            if (!res || !res.ok) throw new Error();
+        }
         
-        toast('Logged work dismissed', 'info');
+        toast('Task dismissed', 'success');
         await loadData();
         renderKPI();
     } catch (e) {
-        // Local only fallback
-        allTasks = allTasks.filter(t => t.id !== tid);
-        saveLocalTasks();
-        renderKPI();
-        toast('Dismissed locally', 'info');
+        toast('Dismiss sync failed', 'error');
     }
 }
 
