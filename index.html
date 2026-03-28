@@ -237,6 +237,7 @@
                     <option value="inprogress">In Progress</option>
                     <option value="waitingclient">Waiting Client</option>
                     <option value="done">Done</option>
+                    <option value="audit">Needs Audit</option>
                     <option value="carryover">Carry Over</option>
                 </select>
                 <select class="filter-sel" id="filterTimeline" onchange="filterWorks()">
@@ -662,11 +663,11 @@
                 </div>
 
                 <div class="panel">
-                    <div class="panel-hdr"><span>Apps Script Backend</span></div>
+                    <div class="panel-hdr"><span>MongoDB API Backend</span></div>
                     <div class="settings-list">
                         <div class="setting-row">
-                            <div><span class="sn">Web App URL</span><span class="sd">Deploy api.gs as Web App → paste
-                                    URL here to enable task creation & week close</span></div>
+                            <div><span class="sn">API Endpoint URL</span><span class="sd">Connect to your Render/Node.js backend 
+                                    (e.g. https://...onrender.com/api) to enable cross-device sync.</span></div>
                             <div class="sc"><input class="setting-inp" type="text" id="cfg-apiUrl"
                                     placeholder="https://script.google.com/macros/s/.../exec" /><button class="btn-sm"
                                     onclick="saveCfg('apiUrl')">Save</button></div>

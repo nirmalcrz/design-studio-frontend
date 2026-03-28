@@ -36,10 +36,13 @@ const DEFAULT_TEAM = [
     { key: 'safnas', name: 'Safnas', role: 'designer', match: ['safnas'], color: 'linear-gradient(135deg,#eab308,#ca8a04)', av: 'S' },
 ];
 
-const PROD_API_URL = 'https://design-studio-backend.onrender.com/api'; // SET YOUR PRODUCTION BACKEND URL HERE (e.g. 'https://your-app.onrender.com/api')
-const API_BASE_URL = PROD_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || !window.location.hostname
-    ? 'http://localhost:5002/api'
-    : `http://${window.location.hostname}:5002/api`);
+const PROD_API_URL = 'https://design-studio-backend.onrender.com/api'; 
+function getBaseUrl() {
+    const saved = localStorage.getItem('cfg-apiUrl');
+    if (saved && saved.trim()) return saved.trim();
+    return PROD_API_URL;
+}
+var API_BASE_URL = getBaseUrl();
 
 async function loadTeam() {
     try {
@@ -512,19 +515,22 @@ async function loadData() {
         if (!res.ok) throw new Error('API not accessible');
         const tasks = await res.json();
         
-        // Map MongoDB response to local task format
-        allTasks = tasks.map(t => ({
+        const apiTasks = (tasks || []).map(t => ({
             ...t,
-            id: t._id,
+            id: t._id || t.id,
             source: 'api'
         }));
 
+        // Merge with local tasks that haven't been synced yet
+        const localTasksRaw = getLocalTasks();
+        const localTasks = (localTasksRaw || []).filter(lt => !apiTasks.some(at => at.id === lt.id || (at.task === lt.task && at.client === lt.client)));
+        allTasks = [...apiTasks, ...localTasks];
+
         await loadClients();
-        console.log(`[DEBUG] Loaded ${allTasks.length} tasks. Samples:`, allTasks.slice(0, 2));
-        toast(`Loaded ${allTasks.length} tasks from Database`, 'success');
+        console.log(`[DATA] ${apiTasks.length} API + ${localTasks.length} local = ${allTasks.length} total.`);
+        toast(`Loaded ${allTasks.length} tasks`, 'success');
     } catch (e) {
         console.error('API Error:', e);
-        // Fallback to local storage if API is down
         allTasks = getLocalTasks();
         toast('Using offline local data', 'info');
     }
@@ -715,7 +721,13 @@ function filterWorks() {
             if (!matchesDesigner && !directAssignee) return false;
         }
         
-        if (st && t.statusNorm !== st) return false;
+        if (st) {
+            if (st === 'audit') {
+                if (t.needsApproval !== true) return false;
+            } else if (t.statusNorm !== st) {
+                return false;
+            }
+        }
         
         if (timeline) {
             const taskDate = t[dateField];
@@ -765,6 +777,7 @@ function renderTaskCard(t) {
       <div class="task-card-top">
         <span class="client-tag">${esc(t.client) || '—'}</span>
         <div style="display:flex;gap:4px;align-items:center">
+          ${t.needsApproval ? '<span class="status-badge orange" style="font-size:8px; padding: 2px 5px; border-radius: 4px; margin-right: 4px;">Audit</span>' : ''}
           ${t.carryOver ? '<span class="carry-tag">↩ Carry</span>' : ''}
           <span class="week-tag">W${t.weekNum}</span>
         </div>
@@ -1391,8 +1404,8 @@ function updateWeeklyStats(tasks) {
     const evaluatableTasks = tasks.filter(t => {
         const isEx = t.isExtra || (t.id && t.id.toString().includes('extra'));
         if (isEx) {
-            // Extra work only counts once it's not 'pending' anymore (deleted or changed by admin)
-            return t.evaluation !== 'pending';
+            // Extra work only counts once it's not pending approval anymore
+            return !t.needsApproval;
         }
         return true; 
     });
@@ -2067,38 +2080,69 @@ function renderHistory() {
 
 // ── SETTINGS ───────────────────────────────────────────────
 function saveCfg(key) {
-    const el = document.getElementById(`cfg - ${key} `);
-    if (!el) return;
-    localStorage.setItem(`cfg - ${key} `, el.value.trim());
+    console.log(`[SETTINGS] Attempting to save: ${key}`);
+    const id = `cfg-${key}`;
+    const el = document.getElementById(id);
+    if (!el) {
+        console.error(`[SETTINGS] Element #${id} not found!`);
+        toast(`Error: Field ${key} not found`, 'error');
+        return;
+    }
+    
+    const val = el.value.trim();
+    localStorage.setItem(id, val);
+    console.log(`[SETTINGS] Saved ${id} = "${val}"`);
+    
     toast('Saved ✓', 'success');
-    if (key === 's1' || key === 's2' || key === 's3') loadData();
-    if (key === 'apiUrl') checkAPIStatus();
-    if (key === 'weekNum') { currentWeekNum = parseInt(el.value) || 1; renderAll(); }
+
+    // Special cases
+    if (key === 'apiUrl' || key === 's1' || key === 's2' || key === 's3') {
+        setTimeout(() => window.location.reload(), 800);
+    }
+    if (key === 'weekNum') { 
+        currentWeekNum = parseInt(val) || 1; 
+        renderAll(); 
+    }
 }
 
 async function testAPI() {
-    const url = localStorage.getItem('cfg-apiUrl');
+    const url = getBaseUrl();
     if (!url) { toast('No API URL configured', 'error'); return; }
     try {
-        const res = await fetch(url + '?action=ping');
-        if (res.ok) { toast('API connected ✓', 'success'); checkAPIStatus(); }
-        else throw new Error();
-    } catch { toast('API not reachable', 'error'); }
+        const res = await fetch(`${url}/tasks`).catch(() => null);
+        if (res && res.status !== 404) { 
+            toast('API connected ✓', 'success'); 
+            checkAPIStatus(); 
+        } else {
+            throw new Error();
+        }
+    } catch { 
+        toast('API not reachable. Check URL in settings.', 'error'); 
+    }
 }
 
 function checkAPIStatus() {
     const url = localStorage.getItem('cfg-apiUrl');
     const el = document.getElementById('apiStatus');
     if (!el) return;
-    if (url) { el.textContent = 'Configured'; el.className = 'conn-badge ok'; }
-    else { el.textContent = 'Not configured'; el.className = 'conn-badge'; }
+    if (url || PROD_API_URL) { 
+        el.textContent = 'Configured'; 
+        el.className = 'conn-badge ok'; 
+    } else { 
+        el.textContent = 'Not configured'; 
+        el.className = 'conn-badge'; 
+    }
 }
 
 function loadSettings() {
     ['s1', 's2', 's3', 'apiUrl', 'weekNum', 'weekStart'].forEach(k => {
-        const v = localStorage.getItem(`cfg - ${k} `);
-        const e = document.getElementById(`cfg - ${k} `);
-        if (e && v) e.value = v;
+        const id = `cfg-${k}`;
+        const v = localStorage.getItem(id);
+        const e = document.getElementById(id);
+        if (e) {
+            if (v !== null) e.value = v;
+            console.log(`[SETTINGS] Loaded ${id}:`, v);
+        }
     });
     checkAPIStatus();
 }
@@ -2150,6 +2194,11 @@ async function initApp() {
 
     // 🔐 Role Enforcement
     updateUIPermissions();
+    // Initialize all weekly state variables
+    currentBoardWeek = currentWeekNum;
+    currentKPIWeek = currentWeekNum;
+    currentSprintWeek = currentWeekNum;
+
     if (currentUserRole !== 'admin' && currentUser && currentUser.designerKey) {
         currentDesigner = currentUser.designerKey;
         currentWeekDesigner = currentUser.designerKey;
@@ -3166,10 +3215,10 @@ function openExtraLogModal() {
     document.getElementById('ex-task').value = '';
     document.getElementById('ex-h').value = '';
     
-    // Hide H-score for designers
+    // Ensure H-score is visible if the user needs to enter it
     const hGroup = document.getElementById('ex-h-group');
     if (hGroup) {
-        hGroup.style.display = (currentUserRole === 'admin') ? 'block' : 'none';
+        hGroup.style.display = 'block'; 
     }
 }
 
@@ -3177,36 +3226,53 @@ function closeExtraLogModal() {
     document.getElementById('extraLogOverlay').classList.remove('open');
 }
 
-function submitExtraLog() {
+async function submitExtraLog() {
     const client = document.getElementById('ex-client').value.trim();
     const taskContent = document.getElementById('ex-task').value.trim();
     const h = parseFloat(document.getElementById('ex-h').value) || 0;
 
     if (!taskContent) { toast('Description required', 'error'); return; }
 
+    const dObj = getDesigner(currentWeekDesigner);
+    const assigneeName = dObj ? dObj.name : currentWeekDesigner;
+
     const newTask = {
-        id: `extra - ${Date.now()} `,
         client: client || '—',
         task: taskContent,
-        assignee: currentWeekDesigner, // logged by this designer
+        assignee: assigneeName, // use full name for database consistency
         status: 'Done',
         statusNorm: 'done',
-        statusNum: currentWeekNum,
         weekNum: currentWeekNum,
-        evaluation: 'pending', // Requires admin approval
+        needsApproval: true,
+        isExtra: true,
         entryDate: new Date().toISOString().split('T')[0],
         closeDate: new Date().toISOString().split('T')[0],
         hTarget: h,
-        source: 'local',
-        isExtra: true
+        source: 'api'
     };
 
-    allTasks.push(newTask);
-    saveLocalTasks();
-    closeExtraLogModal();
-    renderAll();
-    renderWeeklyTracker();
-    toast('Extra work logged. Admin evaluation pending.', 'success');
+    try {
+        const res = await apiFetch(`${API_BASE_URL}/tasks`, {
+            method: 'POST',
+            body: JSON.stringify(newTask)
+        });
+        if (!res || !res.ok) throw new Error('API capture failed');
+        
+        toast('Extra work logged. Admin verification pending.', 'success');
+        closeExtraLogModal();
+        await loadData();
+        renderAll();
+    } catch (e) {
+        console.error('API submission failed, falling back to local:', e);
+        // Fallback to local with unique ID and source flag
+        newTask.id = `extra-${Date.now()}`;
+        newTask.source = 'local';
+        allTasks.push(newTask);
+        saveLocalTasks();
+        closeExtraLogModal();
+        renderAll();
+        toast('Logged locally (offline)', 'info');
+    }
 }
 
 function renderKPIApprovals(dKey, week) {
@@ -3215,9 +3281,9 @@ function renderKPIApprovals(dKey, week) {
     if (!sec || !list) return;
 
     const pending = allTasks.filter(t =>
-        getDesigner(t.assignee).key === dKey &&
+        dKey && getDesigner(t.assignee).key === dKey &&
         t.weekNum === week &&
-        t.evaluation === 'pending'
+        (t.needsApproval === true || t.evaluation === 'pending')
     );
 
     if (pending.length === 0) {
@@ -3244,26 +3310,50 @@ function renderKPIApprovals(dKey, week) {
             `).join('');
 }
 
-function approveTask(tid) {
+async function approveTask(tid) {
     const t = allTasks.find(x => x.id === tid);
-    if (t) {
-        const hInp = document.getElementById(`h-approve-${tid}`);
-        if (hInp) {
-            t.hTarget = parseFloat(hInp.value) || 0;
-        }
-        delete t.evaluation;
-        saveLocalTasks();
-        renderKPI();
+    if (!t) return;
+
+    const hInp = document.getElementById(`h-approve-${tid}`);
+    const finalH = hInp ? parseFloat(hInp.value) : (t.hTarget || 0);
+
+    try {
+        const res = await apiFetch(`${API_BASE_URL}/tasks/${tid}`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+                needsApproval: false,
+                hTarget: finalH
+            })
+        });
+        if (!res || !res.ok) throw new Error();
+        
         toast('Task approved and added to KPI', 'success');
+        await loadData();
+        renderKPI();
+    } catch (e) {
+        toast('Approval sync failed', 'error');
     }
 }
 
-function dismissTask(tid) {
-    if (!confirm('Are you sure you want to dismiss this log? It will be permanently removed.')) return;
-    allTasks = allTasks.filter(t => t.id !== tid);
-    saveLocalTasks();
-    renderKPI();
-    toast('Logged work dismissed', 'info');
+async function dismissTask(tid) {
+    if (!confirm('Are you sure you want to dismiss this log ? It will be permanently removed.')) return;
+    
+    try {
+        const res = await apiFetch(`${API_BASE_URL}/tasks/${tid}`, {
+            method: 'DELETE'
+        });
+        if (!res || !res.ok) throw new Error();
+        
+        toast('Logged work dismissed', 'info');
+        await loadData();
+        renderKPI();
+    } catch (e) {
+        // Local only fallback
+        allTasks = allTasks.filter(t => t.id !== tid);
+        saveLocalTasks();
+        renderKPI();
+        toast('Dismissed locally', 'info');
+    }
 }
 
 function toggleSidebar() {

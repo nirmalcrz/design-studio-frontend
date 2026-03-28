@@ -16,22 +16,29 @@
 const SHEET1_ID = '1HG0XOG1vh8jrMsfDZLMabq3hHSLoAReLiVzpQQBQQr4';
 const SHEET3_ID = '1KlcOk3eAf8fjS-jgyi4wB2CYcLVXwmTsPhsoysP04Lw';
 
-// Sheet 1 tab name where CD adds tasks
-const SHEET1_CD_TAB  = 'CD';
+// Exact Tab Names (matches your emojis)
+const TAB = {
+  CD: 'CD',
+  ANU: '🔒 👧🏻 ANU',
+  AYSH: '🔒 👧🏻 AYSH',
+  ASIF: '🔒 👦🏻 ASIF',
+  SAFNAS: '🔒 👧🏻 SAFNAS',
+  KPI_PREFIX: '🔍 KPI - ',
+};
 
-// Sheet 1 column map (1-indexed)
+// Sheet 1 column map (Updated for checkboxes)
 const COL = {
-  ENTRY_DATE:  1,
-  CLIENT:      2,
-  TASK:        3,
-  STATUS:      4,
-  DESIGN_DUE:  5,
-  FINAL_DUE:   6,
-  CLOSE_DATE:  7,
-  ASSIGNEE:    8,
-  WEEK_NUM:    9,    // NEW column — add this to Sheet 1
-  CARRY_OVER:  10,   // NEW column — add this to Sheet 1
-  H_TARGET:    11,   // H Score target — NEW column
+  ENTRY_DATE: 1,  // A
+  CLIENT:     2,  // B
+  TASK:       3,  // C
+  STATUS:     4,  // D
+  DESIGN_DUE: 5,  // E
+  FINAL_DUE:  7,  // G (Skipping checkbox F)
+  CLOSE_DATE: 9,  // I (Skipping checkbox H)
+  ASSIGNEE:   11, // K (Skipping checkbox J)
+  WEEK_NUM:   13, // M
+  CARRY_OVER: 14, // N
+  H_TARGET:   15, // O
 };
 
 // Week History tab (will be auto-created)
@@ -83,7 +90,7 @@ function doPost(e) {
 
 function getTasks() {
   const ss  = SpreadsheetApp.openById(SHEET1_ID);
-  const sh  = ss.getSheetByName(SHEET1_CD_TAB);
+  const sh  = ss.getSheetByName(TAB.CD);
   if (!sh) return { error: 'CD tab not found in Sheet 1' };
 
   const rows = sh.getDataRange().getValues();
@@ -108,7 +115,7 @@ function getTasks() {
 
 function createTask(task) {
   const ss = SpreadsheetApp.openById(SHEET1_ID);
-  const sh = ss.getSheetByName(SHEET1_CD_TAB);
+  const sh = ss.getSheetByName(TAB.CD);
   if (!sh) return { error: 'CD tab not found' };
 
   const row = [
@@ -135,7 +142,7 @@ function createTask(task) {
 
 function updateTask(task) {
   const ss = SpreadsheetApp.openById(SHEET1_ID);
-  const sh = ss.getSheetByName(SHEET1_CD_TAB);
+  const sh = ss.getSheetByName(TAB.CD);
   if (!sh) return { error: 'CD tab not found' };
 
   const rows = sh.getDataRange().getValues();
@@ -152,23 +159,42 @@ function updateTask(task) {
 }
 
 function mirrorToDesignerTab(ss, task) {
-  // Map assignee name to tab name
-  const tabMap = { 'Anu':'ANU', 'Asif':'ASIF', 'AYSH':'AYSH', 'Aysha':'AYSH', 'Safnas':'SAFNAS' };
-  const tabName = tabMap[task.assignee];
+  const tabName = TAB[task.assignee.toUpperCase()];
   if (!tabName) return;
   const sh = ss.getSheetByName(tabName);
   if (!sh) return;
-  sh.appendRow([
-    task.entryDate || '',
-    task.client || '',
-    task.task || '',
-    task.status || 'Pending',
-    task.designDue || '',
-    task.finalDue || '',
-    '',
-    task.assignee || '',
-    task.weekNum || '',
-  ]);
+
+  // Insert logic to find the correct Weekly Section
+  const data = sh.getDataRange().getValues();
+  const targetWeek = `Week ${task.weekNum || getWeekNum()}`;
+  let weekRow = -1;
+
+  for (let i = 0; i < data.length; i++) {
+    if (String(data[i][0]).includes(targetWeek)) { weekRow = i + 1; break; }
+  }
+
+  if (weekRow !== -1) {
+    // Insert row under the week header to keep grouping
+    sh.insertRowAfter(weekRow);
+    sh.getRange(weekRow + 1, 1, 1, 8).setValues([[
+      task.client || '',
+      task.entryDate || '',
+      task.task || '',
+      task.finalDue || '',
+      task.status || 'Pending',
+      '', '', '' // Remarks columns
+    ]]);
+  } else {
+    // Fallback: append at bottom if week not found
+    sh.appendRow([task.client, task.entryDate, task.task, task.finalDue, task.status]);
+  }
+}
+
+// Helper to get current week (fallback)
+function getWeekNum() {
+  const d = new Date();
+  const start = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil((((d - start) / 86400000) + start.getDay() + 1) / 7);
 }
 
 // ── WEEK CLOSE ─────────────────────────────────────────────
@@ -262,22 +288,34 @@ function getWeeklyData(designer, weekNum) {
 }
 
 function saveWeeklyRow(designer, weekNum, rows) {
-  // Save weekly data back to Sheet 3
+  // Save weekly data back to Sheet 3 (Date-based appending)
   const ss = SpreadsheetApp.openById(SHEET3_ID);
-  const tabMap = { anu:'ANU', asif:'ASIF', aysha:'AYSHA', safnas:'SAFNAS' };
-  const tabName = tabMap[(designer||'').toLowerCase()];
+  const tabName = (designer||'').toUpperCase();
   const sh = ss.getSheetByName(tabName);
   if (!sh) return { error: `Tab ${tabName} not found in Sheet 3` };
 
-  // Find rows matching this week and update
-  // Simple: append new rows (more robust than destructive update)
+  const data = sh.getDataRange().getValues();
+  
   rows.forEach(r => {
     if (!r.date) return;
-    sh.appendRow([
-      r.day || '', r.date || '', r.task || '',
-      r.h || 0, r.completed || '', r.present || 'Yes',
-      r.miiro || 'No', r.bm || 'No',
-    ]);
+    const targetDate = r.date; // Expecting DD/MM/YYYY
+    
+    // Find the row with this date
+    for (let i = 0; i < data.length; i++) {
+       const rowDate = formatVal(data[i][0]);
+       if (rowDate === targetDate) {
+         // Found it! Append task text to the existing cell in Column B
+         const cell = sh.getRange(i + 1, 2);
+         const currentContent = cell.getValue();
+         const newContent = currentContent ? currentContent + "\n" + r.task : r.task;
+         cell.setValue(newContent);
+         
+         // Update other daily flags if provided
+         if (r.h) sh.getRange(i + 1, 3).setValue(r.h);
+         if (r.completed) sh.getRange(i + 1, 4).setValue(r.completed);
+         break;
+       }
+    }
   });
 
   return { ok: true };
@@ -297,36 +335,39 @@ function getKPI(designer) {
 
 function saveKPIScore(designer, taskDescription, quality, impact) {
   // Store in Sheet 2 — find the row by designer + task
-  // Sheet 2 is the KPI sheet (current spreadsheet)
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheetName = `KPI - ${designer.toUpperCase().slice(0,4)}`;
+  const sheetName = `${TAB.KPI_PREFIX}${designer.toUpperCase()}`;
   let sh = ss.getSheetByName(sheetName);
 
   if (!sh) {
-    // Create KPI sheet for this designer
     sh = ss.insertSheet(sheetName);
-    sh.appendRow(['Task', 'Week', 'Deadline Score', 'H Score', 'Quality Score', 'Impact Score', 'Total Score', 'Month']);
-    sh.getRange(1, 1, 1, 8).setFontWeight('bold');
+    sh.appendRow(['Task', 'Client', 'Week', 'Entry Date', 'Final Due', 'Close Date', 'Deadline Score', 'H Score', 'Quality Score', 'Impact Score', 'Total Score', 'Month']);
+    sh.getRange(1, 1, 1, 11).setFontWeight('bold');
   }
 
-  // Find or create row for this task
+  // Find precisely which column is Quality/Impact based on headers
+  const headers = sh.getRange(1, 1, 1, 15).getValues()[0];
+  const colQ = headers.indexOf('Quality Score') + 1 || 9;
+  const colI = headers.indexOf('Impact Score') + 1 || 10;
+  const colT = headers.indexOf('Total Score') + 1 || 11;
+
   const rows = sh.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
     if (rows[i][0] === taskDescription) {
-      sh.getRange(i+1, 5).setValue(quality);   // Quality Score
-      sh.getRange(i+1, 6).setValue(impact);    // Impact Score
-      // Recalculate total
-      const dl       = parseFloat(rows[i][2]) || 0;
-      const hScore   = parseFloat(rows[i][3]) || 0;
-      const total    = parseFloat(quality)*0.4 + parseFloat(impact)*0.3 + dl*0.3/10;
-      sh.getRange(i+1, 7).setValue(total.toFixed(2));
+      sh.getRange(i+1, colQ).setValue(quality);
+      sh.getRange(i+1, colI).setValue(impact);
+      
+      // We don't touch Total Score if it's a formula, 
+      // but if user wants script to calculate:
+      const dl = parseFloat(rows[i][6]) || 0;
+      const total = parseFloat(quality)*0.4 + parseFloat(impact)*0.3 + dl*0.3/10;
+      sh.getRange(i+1, colT).setValue(total.toFixed(2));
       return { ok: true, total: total.toFixed(2) };
     }
   }
 
-  // Not found — append new row
-  sh.appendRow([taskDescription, '', '', '', quality, impact, '']);
-  return { ok: true, message: 'New KPI row created' };
+  sh.appendRow([taskDescription, '', '', '', '', '', '', '', quality, impact, '']);
+  return { ok: true };
 }
 
 // ── HISTORY ────────────────────────────────────────────────
