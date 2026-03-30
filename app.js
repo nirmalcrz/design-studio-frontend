@@ -3227,10 +3227,10 @@ function openExtraLogModal() {
     document.getElementById('ex-task').value = '';
     document.getElementById('ex-h').value = '';
     
-    // Ensure H-score is visible if the user needs to enter it
+    // Ensure H-score is visible only for admins
     const hGroup = document.getElementById('ex-h-group');
     if (hGroup) {
-        hGroup.style.display = 'block'; 
+        hGroup.style.display = (currentUserRole === 'admin') ? 'block' : 'none'; 
     }
 }
 
