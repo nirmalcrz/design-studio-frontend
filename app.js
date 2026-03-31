@@ -1393,7 +1393,10 @@ function renderWeeklyTable(rows, key) {
                onchange="updateTaskField('${esc(t.id)}','bm',this.checked?'Yes':'No')" ${dis}>
       </td>
       <td data-label="Due" class="desktop-only">
-        <strong style="color:${isOverdue(t.finalDue) && t.statusNorm !== 'done' ? 'var(--red)' : 'inherit'}">${formatDate(t.finalDue) || '—'}</strong>
+        <div style="display:flex; align-items:center; gap:8px; justify-content:flex-end;">
+            <strong style="color:${isOverdue(t.finalDue) && t.statusNorm !== 'done' ? 'var(--red)' : 'inherit'}">${formatDate(t.finalDue) || '—'}</strong>
+            ${currentUserRole === 'admin' ? `<button class="btn-ghost sm" style="min-width:auto; padding:3px 6px; font-size:10px; height:auto;" onclick="openTaskModal('${esc(t.id)}')">Edit</button>` : ''}
+        </div>
       </td>
     </tr>
 `).join('');
