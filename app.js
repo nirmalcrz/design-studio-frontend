@@ -689,13 +689,20 @@ function filterWorks() {
     const st = document.getElementById('filterStatus').value;
     const timeline = document.getElementById('filterTimeline').value;
     const dateField = document.getElementById('filterDateField').value || 'finalDue';
+    const hScoreFilter = document.getElementById('filterHScore') ? document.getElementById('filterHScore').value : '';
 
     const now = new Date();
     const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     
-    const soonDate = new Date();
-    soonDate.setDate(now.getDate() + 3);
-    const soonStr = soonDate.getFullYear() + '-' + String(soonDate.getMonth() + 1).padStart(2, '0') + '-' + String(soonDate.getDate()).padStart(2, '0');
+    // 2 days from now
+    const day2Date = new Date();
+    day2Date.setDate(now.getDate() + 2);
+    const day2Str = day2Date.getFullYear() + '-' + String(day2Date.getMonth() + 1).padStart(2, '0') + '-' + String(day2Date.getDate()).padStart(2, '0');
+
+    // 3 days from now
+    const day3Date = new Date();
+    day3Date.setDate(now.getDate() + 3);
+    const day3Str = day3Date.getFullYear() + '-' + String(day3Date.getMonth() + 1).padStart(2, '0') + '-' + String(day3Date.getDate()).padStart(2, '0');
 
     filteredTasks = allTasks.filter(t => {
         if (!t) return false;
@@ -715,10 +722,15 @@ function filterWorks() {
         if (wk && String(t.weekNum) !== wk) return false;
         
         if (des) {
-            const d = getDesigner(t.assignee);
-            const matchesDesigner = d && d.match.includes(des);
-            const directAssignee = (t.assignee || '').toLowerCase() === des;
-            if (!matchesDesigner && !directAssignee) return false;
+            if (des === 'unassigned') {
+                const assigneeStr = (t.assignee || '').toLowerCase();
+                if (assigneeStr && assigneeStr !== 'unassigned') return false;
+            } else {
+                const d = getDesigner(t.assignee);
+                const matchesDesigner = d && d.match.includes(des);
+                const directAssignee = (t.assignee || '').toLowerCase() === des;
+                if (!matchesDesigner && !directAssignee) return false;
+            }
         }
         
         if (st) {
@@ -729,6 +741,10 @@ function filterWorks() {
             }
         }
         
+        if (hScoreFilter === 'unassigned') {
+            if (t.hTarget !== null && t.hTarget !== undefined && t.hTarget !== '') return false;
+        }
+
         if (timeline) {
             const taskDate = t[dateField];
             if (!taskDate) return false;
@@ -737,9 +753,7 @@ function filterWorks() {
             } else if (timeline === 'today') {
                 if (taskDate !== todayStr) return false;
             } else if (timeline === 'soon') {
-                if (taskDate < todayStr || taskDate > soonStr) return false;
-            } else if (timeline === 'upcoming') {
-                if (taskDate <= todayStr) return false;
+                if (taskDate < day2Str || taskDate > day3Str) return false;
             }
         }
         

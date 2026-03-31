@@ -226,6 +226,7 @@
                 </select>
                 <select class="filter-sel" id="filterAssignee" onchange="filterWorks()">
                     <option value="">All Designers</option>
+                    <option value="unassigned">Unassigned</option>
                     <option>Anu</option>
                     <option>Asif</option>
                     <option>Aysha</option>
@@ -245,7 +246,10 @@
                     <option value="overdue">⚠️ Overdue</option>
                     <option value="today">📅 Due Today</option>
                     <option value="soon">⏰ Closing Soon</option>
-                    <option value="upcoming">🚀 Upcoming</option>
+                </select>
+                <select class="filter-sel" id="filterHScore" onchange="filterWorks()">
+                    <option value="">H-Score: All</option>
+                    <option value="unassigned">Not Assigned</option>
                 </select>
                 <select class="filter-sel" id="filterDateField" onchange="filterWorks()">
                     <option value="finalDue">Delivery: Final</option>
