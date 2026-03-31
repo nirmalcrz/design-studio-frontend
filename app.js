@@ -743,6 +743,8 @@ function filterWorks() {
         
         if (hScoreFilter === 'unassigned') {
             if (t.hTarget !== null && t.hTarget !== undefined && t.hTarget !== '') return false;
+        } else if (hScoreFilter === 'assigned') {
+            if (t.hTarget === null || t.hTarget === undefined || t.hTarget === '') return false;
         }
 
         if (timeline) {
