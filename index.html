@@ -226,7 +226,6 @@
                 </select>
                 <select class="filter-sel" id="filterAssignee" onchange="filterWorks()">
                     <option value="">All Designers</option>
-                    <option value="unassigned">Unassigned</option>
                     <option>Anu</option>
                     <option>Asif</option>
                     <option>Aysha</option>
@@ -247,10 +246,10 @@
                     <option value="today">📅 Due Today</option>
                     <option value="soon">⏰ Closing Soon</option>
                 </select>
-                <select class="filter-sel" id="filterHScore" onchange="filterWorks()">
-                    <option value="">H-Score: All</option>
-                    <option value="unassigned">H-Score Not Added</option>
-                    <option value="assigned">H-Score Added</option>
+                <select class="filter-sel" id="filterExtra" onchange="filterWorks()">
+                    <option value="">Extra Filters</option>
+                    <option value="unassigned_work">Unassigned Work</option>
+                    <option value="no_hscore">H-Score Not Added</option>
                 </select>
                 <select class="filter-sel" id="filterDateField" onchange="filterWorks()">
                     <option value="finalDue">Delivery: Final</option>

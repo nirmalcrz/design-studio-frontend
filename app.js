@@ -689,7 +689,7 @@ function filterWorks() {
     const st = document.getElementById('filterStatus').value;
     const timeline = document.getElementById('filterTimeline').value;
     const dateField = document.getElementById('filterDateField').value || 'finalDue';
-    const hScoreFilter = document.getElementById('filterHScore') ? document.getElementById('filterHScore').value : '';
+    const extraFilter = document.getElementById('filterExtra') ? document.getElementById('filterExtra').value : '';
 
     const now = new Date();
     const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
@@ -722,15 +722,10 @@ function filterWorks() {
         if (wk && String(t.weekNum) !== wk) return false;
         
         if (des) {
-            if (des === 'unassigned') {
-                const assigneeStr = (t.assignee || '').toLowerCase();
-                if (assigneeStr && assigneeStr !== 'unassigned') return false;
-            } else {
-                const d = getDesigner(t.assignee);
-                const matchesDesigner = d && d.match.includes(des);
-                const directAssignee = (t.assignee || '').toLowerCase() === des;
-                if (!matchesDesigner && !directAssignee) return false;
-            }
+            const d = getDesigner(t.assignee);
+            const matchesDesigner = d && d.match.includes(des);
+            const directAssignee = (t.assignee || '').toLowerCase() === des;
+            if (!matchesDesigner && !directAssignee) return false;
         }
         
         if (st) {
@@ -741,10 +736,11 @@ function filterWorks() {
             }
         }
         
-        if (hScoreFilter === 'unassigned') {
+        if (extraFilter === 'no_hscore') {
             if (t.hTarget !== null && t.hTarget !== undefined && t.hTarget !== '') return false;
-        } else if (hScoreFilter === 'assigned') {
-            if (t.hTarget === null || t.hTarget === undefined || t.hTarget === '') return false;
+        } else if (extraFilter === 'unassigned_work') {
+            const assigneeStr = (t.assignee || '').toLowerCase();
+            if (assigneeStr && assigneeStr !== 'unassigned') return false;
         }
 
         if (timeline) {
