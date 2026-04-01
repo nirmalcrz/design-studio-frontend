@@ -381,10 +381,7 @@ function getWeekDateRange(weekNum) {
 
 // Format Mon DD – Sat DD display
 function formatWeekRange(weekNum) {
-    const r = getWeekDateRange(weekNum);
-    if (!r) return `Week ${weekNum}`;
-    const fmt = (d) => d.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
-    return `W${weekNum} — ${fmt(r.mon)} to ${fmt(r.sat)}`;
+    return `Week ${weekNum}`;
 }
 
 function getWeekNum() {
