@@ -3156,9 +3156,11 @@ async function executeClearHistory() {
     
     try {
         // Clear history in backend
-        await apiFetch(`${API_BASE_URL}/history`, { method: 'DELETE' });
+        const histRes = await apiFetch(`${API_BASE_URL}/history`, { method: 'DELETE' });
+        if (!histRes || !histRes.ok) throw new Error(histRes ? `Server error ${histRes.status}` : 'Not authenticated');
         // Also clear logs which are tied to history
-        await apiFetch(`${API_BASE_URL}/logs`, { method: 'DELETE' });
+        const logsRes = await apiFetch(`${API_BASE_URL}/logs`, { method: 'DELETE' });
+        if (!logsRes || !logsRes.ok) throw new Error(logsRes ? `Server error ${logsRes.status}` : 'Not authenticated');
 
         closedWeeks = [];
         localStorage.removeItem('closedWeeks');
@@ -3188,7 +3190,8 @@ async function executeClearTasks() {
 
     try {
         // Clear all tasks in backend
-        await apiFetch(`${API_BASE_URL}/tasks`, { method: 'DELETE' });
+        const tasksRes = await apiFetch(`${API_BASE_URL}/tasks`, { method: 'DELETE' });
+        if (!tasksRes || !tasksRes.ok) throw new Error(tasksRes ? `Server error ${tasksRes.status}` : 'Not authenticated');
 
         allTasks = [];
         localStorage.removeItem('localTasks');
