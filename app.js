@@ -3370,8 +3370,6 @@ async function approveTask(tid) {
 }
 
 async function dismissTask(tid) {
-    if (!confirm('Are you sure you want to dismiss this log? It will be permanently removed.')) return;
-    
     const t = allTasks.find(x => x.id === tid);
     try {
         if (t && t.source === 'local') {
