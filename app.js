@@ -3307,11 +3307,12 @@ function renderKPIApprovals(dKey, week) {
     const list = document.getElementById('approvalList');
     if (!sec || !list) return;
 
-    const pending = allTasks.filter(t =>
-        dKey && getDesigner(t.assignee).key === dKey &&
-        t.weekNum === week &&
-        (t.needsApproval === true || t.evaluation === 'pending')
-    );
+    const pending = allTasks.filter(t => {
+        const d = getDesigner(t.assignee);
+        return dKey && d && d.key === dKey &&
+            t.weekNum === week &&
+            (t.needsApproval === true || t.evaluation === 'pending');
+    });
 
     if (pending.length === 0) {
         sec.style.display = 'none';
