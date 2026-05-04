@@ -384,6 +384,15 @@ function formatWeekRange(weekNum) {
     return `Week ${weekNum}`;
 }
 
+// Returns true if a task belongs to the current month cycle.
+// Uses cfg-weekStart as the cycle boundary so that old week-1 tasks
+// from a previous month are not shown after a reset.
+function isInCurrentCycle(task) {
+    const cycleStart = localStorage.getItem('cfg-weekStart');
+    if (!cycleStart || !task.entryDate) return true;
+    return task.entryDate >= cycleStart;
+}
+
 function getWeekNum() {
     const saved = localStorage.getItem('cfg-weekNum');
     let wn = 1;
@@ -1187,7 +1196,8 @@ function updateBoardCounts() {
             d.match.includes((t.assignee || '').toLowerCase().trim()) &&
             t.statusNorm !== 'done' &&
             t.statusNorm !== 'carryover' &&
-            t.weekNum === w
+            t.weekNum === w &&
+            isInCurrentCycle(t)
         ).length;
         const el = document.getElementById(`dcount-${d.key}`);
         if (el) el.textContent = count;
@@ -1207,7 +1217,7 @@ function renderDesignerBoard(key) {
     // Filter: only current selected week (unless toggled to show all)
     let tasks = allTasks.filter(t => d.match.includes((t.assignee || '').toLowerCase().trim()));
     if (!boardShowAllWeeks) {
-        tasks = tasks.filter(t => t.weekNum === w || !t.weekNum);
+        tasks = tasks.filter(t => (t.weekNum === w || !t.weekNum) && isInCurrentCycle(t));
     } else {
         // Show all weeks — keep everything
     }
@@ -1347,7 +1357,7 @@ function renderWeeklyTable(rows, key) {
 
     const d = DESIGNERS.find(d => d.key === key);
     const designerTasks = d ? allTasks.filter(t => d.match.includes((t.assignee || '').toLowerCase().trim())) : [];
-    const thisWeekTasks = designerTasks.filter(t => t.weekNum === currentWeekNum); // Filter by currentWeekNum
+    const thisWeekTasks = designerTasks.filter(t => t.weekNum === currentWeekNum && isInCurrentCycle(t));
     const taskOptions = designerTasks.map(t => `<option value="${esc(t.task)}">${esc(t.client)} – ${esc(t.task.slice(0, 40))}</option>`).join('');
 
     // Unified task rendering: Everything is now a Task (Assigned or Extra).
