@@ -679,12 +679,26 @@ function updateKPIBar() {
     setVal('nb-works', active.length);
 }
 
+function weekDisplayLabel(weekNum, allWeekNums) {
+    const r = getWeekDateRange(weekNum);
+    if (!r) return `Week ${weekNum}`;
+    const month = r.mon.getMonth();
+    const year = r.mon.getFullYear();
+    const monthName = r.mon.toLocaleDateString('en-IN', { month: 'short' });
+    // Count how many weeks from the list fall in the same month before this one
+    const idx = allWeekNums.filter(w => {
+        const wr = getWeekDateRange(w);
+        return wr && wr.mon.getMonth() === month && wr.mon.getFullYear() === year && w <= weekNum;
+    }).length;
+    return `${monthName} Week ${idx}`;
+}
+
 function populateWeekFilter() {
     const sel = document.getElementById('filterWeek');
     const weeks = [...new Set(allTasks.map(t => t.weekNum).filter(Boolean))].sort((a, b) => a - b);
     const cur = sel.value;
     sel.innerHTML = '<option value="">All Weeks</option>' +
-        weeks.map(w => `<option value="${w}" ${cur == w ? 'selected' : ''}>Week ${w}</option>`).join('');
+        weeks.map(w => `<option value="${w}" ${cur == w ? 'selected' : ''}>${weekDisplayLabel(w, weeks)}</option>`).join('');
 }
 
 function filterWorks() {
