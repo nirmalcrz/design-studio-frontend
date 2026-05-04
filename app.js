@@ -2112,7 +2112,7 @@ function renderHistory() {
     timeline.innerHTML = [...closedWeeks].sort((a,b) => b.weekNum - a.weekNum).map(wk => {
         const designers = Object.entries(wk.designers).map(([key, d]) => {
             const rateClass = d.rate >= 80 ? 'good' : d.rate >= 50 ? 'medium' : 'poor';
-            return `<div class="hwc-d">
+            return `<div class="hwc-d" style="cursor:pointer" onclick="openHistoryTaskModal('${esc(key)}', ${wk.weekNum}, '${esc(wk.closeDate)}')">
         <div class="hwc-d-name">${esc(d.name)}</div>
         <div class="hwc-d-rate ${rateClass}">${d.rate}%</div>
         <div class="hwc-d-sub">${d.completed}/${d.assigned} tasks
@@ -3108,6 +3108,81 @@ function executeMonthClose() {
     toast(`Monthly KPI saved for ${monthLabel}.Week reset to 1.`, 'success');
 }
 
+// ── HISTORY TASK MODALS ──────────────────────────────────────
+
+function openHistoryTaskModal(dKey, weekNum, closeDate) {
+    const d = DESIGNERS.find(x => x.key === dKey);
+    if (!d) return;
+
+    // Approximate cycle start: Monday of (closeDate minus weekNum weeks)
+    const closeDateMs = new Date(closeDate).getTime();
+    const approxStart = getMondayOf(new Date(closeDateMs - weekNum * 7 * 86400000));
+    const cycleStartStr = approxStart.toISOString().split('T')[0];
+
+    const tasks = allTasks.filter(t =>
+        d.match.includes((t.assignee || '').toLowerCase().trim()) &&
+        t.weekNum === weekNum &&
+        (!t.entryDate || (t.entryDate >= cycleStartStr && t.entryDate <= closeDate))
+    );
+
+    const monthLabel = new Date(closeDate).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+    const title = `${d.name} — Week ${weekNum} · ${monthLabel}`;
+    _showHistoryModal(title, tasks);
+}
+
+function openMonthHistoryModal(dKey, monthLabel) {
+    const d = DESIGNERS.find(x => x.key === dKey);
+    if (!d) return;
+
+    // Parse "April 2026" → month index + year
+    const parts = monthLabel.split(' ');
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const monthIdx = monthNames.findIndex(m => m.toLowerCase() === (parts[0] || '').toLowerCase());
+    const year = parseInt(parts[1]);
+
+    const tasks = (monthIdx !== -1 && year) ? allTasks.filter(t => {
+        if (!d.match.includes((t.assignee || '').toLowerCase().trim())) return false;
+        const raw = t.entryDate || t.closeDate;
+        if (!raw) return false;
+        const dt = new Date(raw);
+        return dt.getMonth() === monthIdx && dt.getFullYear() === year;
+    }) : [];
+
+    _showHistoryModal(`${d.name} — ${monthLabel}`, tasks);
+}
+
+function _showHistoryModal(title, tasks) {
+    document.getElementById('histTaskModalTitle').textContent = title;
+
+    const statusLabel = { pending: 'Pending', inprogress: 'In Progress', waiting: 'Waiting', done: 'Done', carryover: 'Carry Over' };
+    const statusColor = { pending: 'var(--orange)', inprogress: 'var(--blue)', waiting: 'var(--purple, #a855f7)', done: 'var(--green)', carryover: 'var(--text3)' };
+
+    const body = document.getElementById('histTaskModalBody');
+    if (tasks.length === 0) {
+        body.innerHTML = '<p style="color:var(--text3);text-align:center;padding:30px 0">No tasks found for this period.</p>';
+    } else {
+        body.innerHTML = tasks.map(t => `
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:4px">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                    <span style="font-weight:600;font-size:13px;color:var(--text1);flex:1">${esc(t.task || '—')}</span>
+                    <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;background:${statusColor[t.statusNorm] || 'var(--text3)'}22;color:${statusColor[t.statusNorm] || 'var(--text3)'}">${statusLabel[t.statusNorm] || t.statusNorm || '—'}</span>
+                </div>
+                <div style="display:flex;gap:12px;font-size:11px;color:var(--text3)">
+                    <span>${esc(t.client || '—')}</span>
+                    ${t.entryDate ? `<span>· ${formatDate(t.entryDate)}</span>` : ''}
+                    ${t.hTarget ? `<span>· H: ${t.hTarget}</span>` : ''}
+                    ${t.carryOver ? `<span style="color:var(--orange)">· Carry Over</span>` : ''}
+                </div>
+            </div>`).join('');
+    }
+
+    document.getElementById('histTaskModal').classList.add('open');
+}
+
+function closeHistTaskModal() {
+    document.getElementById('histTaskModal').classList.remove('open');
+}
+
 // ── MONTHLY HISTORY RENDER ──────────────────────────────────
 function renderMonthHistory() {
     let records = [];
@@ -3118,14 +3193,14 @@ function renderMonthHistory() {
         html = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px">No monthly records yet. Close a month to start tracking.</div>';
     } else {
         html = records.map(rec => {
-        const designersArr = Object.values(rec.designers || {});
-        
+        const designersArr = Object.entries(rec.designers || {}).map(([key, d]) => ({ ...d, _key: key }));
+
         const renderGroup = (groupTitle, filteredDesigners) => {
             if (filteredDesigners.length === 0) return '';
             const cards = filteredDesigners.map(d => {
                 const scoreClass = d.total >= 7 ? 'good' : d.total >= 4 ? 'medium' : 'poor';
                 return `
-                <div class="mds-card">
+                <div class="mds-card" style="cursor:pointer" onclick="openMonthHistoryModal('${esc(d._key)}', '${esc(rec.label)}')">
                     <div class="mds-name">
                         <span class="av-dot" style="background:${d.color || 'var(--accent)'};width:18px;height:18px;font-size:8px">${d.av || '?'}</span>
                         ${esc(d.name)}

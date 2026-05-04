@@ -1160,6 +1160,20 @@
             <span>Settings</span>
         </button>
     </div>
+
+<!-- History Task Detail Modal -->
+<div class="modal-overlay" id="histTaskModal" onclick="if(event.target===this)closeHistTaskModal()">
+    <div class="modal-box" style="max-width:560px;width:92%;max-height:80vh;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px">
+            <div>
+                <h3 id="histTaskModalTitle" style="font-size:15px;font-weight:700;color:var(--text1);margin:0 0 2px"></h3>
+                <p style="font-size:11px;color:var(--text3);margin:0">Task breakdown for this period</p>
+            </div>
+            <button onclick="closeHistTaskModal()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;line-height:1;padding:0">×</button>
+        </div>
+        <div id="histTaskModalBody" style="overflow-y:auto;display:flex;flex-direction:column;gap:8px;flex:1"></div>
+    </div>
+</div>
 </body>
 
 </html>
