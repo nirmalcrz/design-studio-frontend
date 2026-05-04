@@ -661,17 +661,18 @@ function switchScreen(name) {
 function updateKPIBar() {
     if (!allTasks) return;
     const w = getWeekNum() || 1;
-    const active = allTasks.filter(t => t && t.statusNorm !== 'done');
-    const thisWk = allTasks.filter(t => t && t.weekNum === w);
-    const done = allTasks.filter(t => t && t.statusNorm === 'done');
-    const carry = allTasks.filter(t => t && t.carryOver);
+    const cycleTasks = allTasks.filter(t => t && isInCurrentCycle(t));
+    const active = cycleTasks.filter(t => t.statusNorm !== 'done');
+    const thisWk = cycleTasks.filter(t => t.weekNum === w);
+    const done = cycleTasks.filter(t => t.statusNorm === 'done');
+    const carry = cycleTasks.filter(t => t.carryOver);
 
     const setVal = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.textContent = val;
     };
 
-    setVal('st-total', allTasks.length);
+    setVal('st-total', cycleTasks.length);
     setVal('st-active', active.length);
     setVal('st-week', thisWk.length);
     setVal('st-done', done.length);
@@ -735,6 +736,8 @@ function filterWorks() {
             const d = getDesigner(taskAssignee);
             if (taskAssignee !== desKey && (!d || !d.match.includes(desKey))) return false;
         }
+
+        if (!isInCurrentCycle(t)) return false;
 
         const taskName = (t.task || '').toLowerCase();
         const clientName = (t.client || '').toLowerCase();
