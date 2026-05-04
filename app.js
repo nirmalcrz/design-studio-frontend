@@ -1552,6 +1552,7 @@ async function renderLeaderboard() {
         const weekTasks = allTasks.filter(t =>
             d.match.includes((t.assignee || '').toLowerCase().trim()) &&
             t.weekNum === currentKPIWeek &&
+            isInCurrentCycle(t) &&
             t.evaluation !== 'pending'
         );
 
@@ -1662,7 +1663,8 @@ function renderKPITable(key) {
     const isSenior = d.role === 'senior_designer';
     const tasks = allTasks.filter(t =>
         d.match.includes((t.assignee || '').toLowerCase().trim()) &&
-        t.weekNum === currentKPIWeek
+        t.weekNum === currentKPIWeek &&
+        isInCurrentCycle(t)
     );
     const thead = document.querySelector('.kpi-table thead tr');
     const body = document.getElementById('kpiTableBody');
@@ -3335,6 +3337,7 @@ function renderKPIApprovals(dKey, week) {
         const d = getDesigner(t.assignee);
         return dKey && d && d.key === dKey &&
             t.weekNum === week &&
+            isInCurrentCycle(t) &&
             (t.needsApproval === true || t.evaluation === 'pending');
     });
 
