@@ -2020,13 +2020,20 @@ async function executeWeekClose() {
         });
     } catch (e) { console.error('History save failed:', e); }
 
+    // Auto-advance week: cycle resets to 1 after week 5
+    const nextWk = w >= 5 ? 1 : w + 1;
+    // Carry-overs that cross a cycle boundary must use the new cycle's start
+    // date as their entryDate so isInCurrentCycle includes them.
+    const newCycleStart = getMondayOf(new Date()).toISOString().split('T')[0];
+    const carryEntryDate = nextWk === 1 ? newCycleStart : closeDate;
+
     // 2. Handle Carry-overs
     const carryTasks = allTasks.filter(t => t.weekNum === w && t.statusNorm !== 'done');
     for (const t of carryTasks) {
         // A. Mark old task as carryover in backend
         await apiFetch(`${API_BASE_URL}/tasks/${t.id}`, {
             method: 'PATCH',
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 statusNorm: 'carryover',
                 carryOver: true
             })
@@ -2049,10 +2056,10 @@ async function executeWeekClose() {
             task: t.task,
             assignee: t.assignee,
             statusNorm: 'pending',
-            weekNum: w + 1,
+            weekNum: nextWk,
             hTarget: newH,
             finalDue: newDue,
-            entryDate: closeDate,
+            entryDate: carryEntryDate,
             carryOver: true,
             origCarryFrom: w,
             notes: (t.notes || '') + ` (Carried from Week ${w})`
@@ -2065,9 +2072,7 @@ async function executeWeekClose() {
     }
 
     toast(`Week ${w} closed. Data synchronized.`, 'success');
-    
-    // Auto-advance block week or reset to 1
-    const nextWk = w >= 5 ? 1 : w + 1;
+
     localStorage.setItem('cfg-weekNum', nextWk);
     currentWeekNum = nextWk;
     currentBoardWeek = nextWk;
