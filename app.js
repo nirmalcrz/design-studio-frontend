@@ -128,18 +128,24 @@ function updateThemeIcon(isLight) {
 }
 initTheme();
 
-// If we're on week 1 but cfg-weekStart is from a previous month, the cycle
-// boundary was never updated after the last sprint/month close. Fix it now.
+// Detect stale cfg-weekStart: if (weekStart + weekNum weeks) is more than
+// 7 days behind today's Monday, the cycle never got its boundary updated.
+// Reset to this Monday so old-cycle tasks are filtered correctly.
 (function fixStaleCycleStart() {
     const stored = localStorage.getItem('cfg-weekStart');
-    if (!stored) return;
-    const savedWeekNum = parseInt(localStorage.getItem('cfg-weekNum') || '1');
-    if (savedWeekNum !== 1) return;
-    const now = new Date();
-    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    if (stored < thisMonthStart) {
-        const mon = getMondayOf(now);
-        localStorage.setItem('cfg-weekStart', mon.toISOString().split('T')[0]);
+    const thisMon = getMondayOf(new Date());
+    if (!stored) {
+        // Never set — initialise to this Monday
+        localStorage.setItem('cfg-weekStart', thisMon.toISOString().split('T')[0]);
+        return;
+    }
+    const savedWeekNum = Math.max(1, parseInt(localStorage.getItem('cfg-weekNum') || '1'));
+    const expectedMon = new Date(
+        getMondayOf(new Date(stored)).getTime() + (savedWeekNum - 1) * 7 * 86400000
+    );
+    const daysBehind = Math.round((thisMon - expectedMon) / 86400000);
+    if (daysBehind > 7) {
+        localStorage.setItem('cfg-weekStart', thisMon.toISOString().split('T')[0]);
     }
 })();
 
