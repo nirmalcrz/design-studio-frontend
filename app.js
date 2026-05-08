@@ -249,7 +249,13 @@ async function apiFetch(url, options = {}) {
 
 function canEditWeek(weekNum) {
     if (currentUserRole === 'admin') return true;
-    return !closedWeeks.some(w => w.weekNum === weekNum);
+    const cycleStart = localStorage.getItem('cfg-weekStart');
+    // Only lock editing for weeks closed in the CURRENT cycle.
+    // A Week 1 closed in April must not lock May's Week 1.
+    return !closedWeeks.some(w =>
+        w.weekNum === weekNum &&
+        (!cycleStart || !w.closeDate || w.closeDate >= cycleStart)
+    );
 }
 
 function switchUserRole(role) {
@@ -404,10 +410,10 @@ function formatWeekRange(weekNum) {
 function isInCurrentCycle(task) {
     const cycleStart = localStorage.getItem('cfg-weekStart');
     if (!cycleStart) return true;
-    // Use the best available date to place this task in time
-    const dateStr = task.entryDate || task.closeDate || task.date;
-    if (!dateStr) return false; // No date at all → treat as old task, exclude
-    return dateStr >= cycleStart;
+    // Only use entryDate — closeDate is when a task was completed and can be
+    // updated in a new cycle, making old tasks appear as current.
+    if (!task.entryDate) return false;
+    return task.entryDate >= cycleStart;
 }
 
 function getWeekNum() {
