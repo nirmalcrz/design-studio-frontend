@@ -128,15 +128,17 @@ function updateThemeIcon(isLight) {
 }
 initTheme();
 
-// If cfg-weekStart is from a previous cycle (more than 5 weeks ago relative to today),
-// reset it to this Monday so the current cycle boundary is correct.
+// If we're on week 1 but cfg-weekStart is from a previous month, the cycle
+// boundary was never updated after the last sprint/month close. Fix it now.
 (function fixStaleCycleStart() {
     const stored = localStorage.getItem('cfg-weekStart');
     if (!stored) return;
-    const storedMs = new Date(stored).getTime();
-    const fiveWeeksMs = 5 * 7 * 24 * 60 * 60 * 1000;
-    if (Date.now() - storedMs > fiveWeeksMs) {
-        const mon = getMondayOf(new Date());
+    const savedWeekNum = parseInt(localStorage.getItem('cfg-weekNum') || '1');
+    if (savedWeekNum !== 1) return;
+    const now = new Date();
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    if (stored < thisMonthStart) {
+        const mon = getMondayOf(now);
         localStorage.setItem('cfg-weekStart', mon.toISOString().split('T')[0]);
     }
 })();
