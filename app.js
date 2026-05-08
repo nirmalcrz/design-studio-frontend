@@ -127,6 +127,20 @@ function updateThemeIcon(isLight) {
     }
 }
 initTheme();
+
+// If cfg-weekStart is from a previous cycle (more than 5 weeks ago relative to today),
+// reset it to this Monday so the current cycle boundary is correct.
+(function fixStaleCycleStart() {
+    const stored = localStorage.getItem('cfg-weekStart');
+    if (!stored) return;
+    const storedMs = new Date(stored).getTime();
+    const fiveWeeksMs = 5 * 7 * 24 * 60 * 60 * 1000;
+    if (Date.now() - storedMs > fiveWeeksMs) {
+        const mon = getMondayOf(new Date());
+        localStorage.setItem('cfg-weekStart', mon.toISOString().split('T')[0]);
+    }
+})();
+
 currentWeekNum = getWeekNum() || 1;      // for Weekly Tracker
 currentBoardWeek = getWeekNum() || 1;    // for Designer Board
 currentKPIWeek = getWeekNum() || 1;      // for KPI
@@ -2045,6 +2059,13 @@ async function executeWeekClose() {
     currentBoardWeek = nextWk;
     currentSprintWeek = nextWk;
     currentKPIWeek = nextWk;
+
+    // When cycle resets to week 1, update cfg-weekStart so the new cycle
+    // boundary is correct and old-cycle tasks are excluded from current views.
+    if (nextWk === 1) {
+        const newCycleStart = getMondayOf(new Date());
+        localStorage.setItem('cfg-weekStart', newCycleStart.toISOString().split('T')[0]);
+    }
 
     await loadData();
     await loadHistory();
