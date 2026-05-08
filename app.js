@@ -389,8 +389,11 @@ function formatWeekRange(weekNum) {
 // from a previous month are not shown after a reset.
 function isInCurrentCycle(task) {
     const cycleStart = localStorage.getItem('cfg-weekStart');
-    if (!cycleStart || !task.entryDate) return true;
-    return task.entryDate >= cycleStart;
+    if (!cycleStart) return true;
+    // Use the best available date to place this task in time
+    const dateStr = task.entryDate || task.closeDate || task.date;
+    if (!dateStr) return false; // No date at all → treat as old task, exclude
+    return dateStr >= cycleStart;
 }
 
 function getWeekNum() {
