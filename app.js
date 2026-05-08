@@ -2250,6 +2250,30 @@ function updateClock() {
     document.getElementById('sidebarTime').textContent = t;
 }
 
+// ── CARRY-OVER MIGRATION ────────────────────────────────────
+// Before the weekNum fix, closing week 5 created carry-overs with weekNum:6
+// and an entryDate from the old cycle. This patches them to weekNum:1 with
+// the current cycle's start date so they appear in Week 1.
+async function migrateOrphanedCarryOvers() {
+    const cycleStart = localStorage.getItem('cfg-weekStart');
+    if (!cycleStart) return;
+    const orphans = allTasks.filter(t =>
+        t.carryOver === true &&
+        t.weekNum > 5 &&
+        t.statusNorm !== 'done' &&
+        t.statusNorm !== 'carryover'
+    );
+    if (orphans.length === 0) return;
+    await Promise.all(orphans.map(t =>
+        apiFetch(`${API_BASE_URL}/tasks/${t.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ weekNum: 1, entryDate: cycleStart })
+        })
+    ));
+    await loadData();
+    renderAll();
+}
+
 // ── INIT ───────────────────────────────────────────────────
 async function initApp() {
     if (!checkAuth()) return;
@@ -2282,6 +2306,7 @@ async function initApp() {
     loadSettings();
     initMonthState();
     await loadData();
+    await migrateOrphanedCarryOvers();
     await loadClients();
     await loadHistory();
     renderTeamGrid();
