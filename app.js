@@ -129,20 +129,15 @@ function updateThemeIcon(isLight) {
 initTheme();
 
 // cfg-weekStart = first Monday of the current calendar month.
-// Cycles align with months: May cycle starts May 5 (first Mon of May 2026).
-// If stored value is from a previous month, auto-reset to keep the boundary correct.
+// Authoritative: always recomputed on load so any stale or future-dated stored
+// value (e.g. set by executeMonthClose or executeResetToWeek1) is overwritten.
 (function fixCycleStart() {
     const now = new Date();
-    const thisMonthStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const stored = localStorage.getItem('cfg-weekStart');
-    if (!stored || stored < thisMonthStr) {
-        // Find first Monday of current month
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-        const dow = firstDay.getDay(); // 0=Sun,1=Mon,...
-        const daysToMon = dow === 0 ? 1 : dow === 1 ? 0 : 8 - dow;
-        const firstMon = new Date(firstDay.getTime() + daysToMon * 86400000);
-        localStorage.setItem('cfg-weekStart', firstMon.toISOString().split('T')[0]);
-    }
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const dow = firstDay.getDay(); // 0=Sun,1=Mon,...
+    const daysToMon = dow === 0 ? 1 : dow === 1 ? 0 : 8 - dow;
+    const firstMon = new Date(firstDay.getTime() + daysToMon * 86400000);
+    localStorage.setItem('cfg-weekStart', firstMon.toISOString().split('T')[0]);
 })();
 
 currentWeekNum = getWeekNum() || 1;      // for Weekly Tracker
@@ -3164,13 +3159,6 @@ function executeMonthClose() {
     currentKPIWeek = 1;
     currentSprintWeek = 1;
 
-    // Attempt to set cfg-weekStart to next Monday
-    const nextMon = new Date();
-    const day = nextMon.getDay();
-    const diff = day === 0 ? 1 : 8 - day;
-    nextMon.setDate(nextMon.getDate() + diff);
-    localStorage.setItem('cfg-weekStart', nextMon.toISOString().split('T')[0]);
-
     renderAll();
     toast(`Monthly KPI saved for ${monthLabel}.Week reset to 1.`, 'success');
 }
@@ -3380,7 +3368,11 @@ function closeResetModal() {
 }
 
 function executeResetToWeek1() {
-    const mon = getMondayOf(new Date());
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const dow = firstDay.getDay();
+    const daysToMon = dow === 0 ? 1 : dow === 1 ? 0 : 8 - dow;
+    const mon = new Date(firstDay.getTime() + daysToMon * 86400000);
     localStorage.setItem('cfg-weekStart', mon.toISOString().split('T')[0]);
     localStorage.setItem('cfg-weekNum', '1');
 
