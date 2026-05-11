@@ -422,9 +422,9 @@ function formatWeekRange(weekNum) {
 function isInCurrentCycle(task) {
     const cycleStart = localStorage.getItem('cfg-weekStart');
     if (!cycleStart) return true;
-    // Only use entryDate — closeDate is when a task was completed and can be
-    // updated in a new cycle, making old tasks appear as current.
-    if (!task.entryDate) return false;
+    // If no entryDate stored, we can't determine cycle — show the task.
+    // Tasks without entryDate are rare (old imports); hiding them breaks Works.
+    if (!task.entryDate) return true;
     return task.entryDate >= cycleStart;
 }
 
@@ -568,7 +568,7 @@ async function loadData() {
         allTasks = [...apiTasks, ...localTasks];
 
         await loadClients();
-        console.log(`[DATA] ${apiTasks.length} API + ${localTasks.length} local = ${allTasks.length} total.`);
+        console.log(`[DATA] ${apiTasks.length} API + ${localTasks.length} local = ${allTasks.length} total. cycleStart=${localStorage.getItem('cfg-weekStart')}`);
         toast(`Loaded ${allTasks.length} tasks`, 'success');
     } catch (e) {
         console.error('API Error:', e);
