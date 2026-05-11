@@ -128,14 +128,21 @@ function updateThemeIcon(isLight) {
 }
 initTheme();
 
-// cfg-weekStart must always equal: getMondayOf(today) - (weekNum-1) weeks.
-// Always recompute it on load so manual settings, broken fixes, or missed
-// sprint-close updates never leave it pointing at the wrong cycle.
+// cfg-weekStart = first Monday of the current calendar month.
+// Cycles align with months: May cycle starts May 5 (first Mon of May 2026).
+// If stored value is from a previous month, auto-reset to keep the boundary correct.
 (function fixCycleStart() {
-    const thisMon = getMondayOf(new Date());
-    const savedWeekNum = Math.max(1, parseInt(localStorage.getItem('cfg-weekNum') || '1'));
-    const weekOneMon = new Date(thisMon.getTime() - (savedWeekNum - 1) * 7 * 86400000);
-    localStorage.setItem('cfg-weekStart', weekOneMon.toISOString().split('T')[0]);
+    const now = new Date();
+    const thisMonthStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const stored = localStorage.getItem('cfg-weekStart');
+    if (!stored || stored < thisMonthStr) {
+        // Find first Monday of current month
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const dow = firstDay.getDay(); // 0=Sun,1=Mon,...
+        const daysToMon = dow === 0 ? 1 : dow === 1 ? 0 : 8 - dow;
+        const firstMon = new Date(firstDay.getTime() + daysToMon * 86400000);
+        localStorage.setItem('cfg-weekStart', firstMon.toISOString().split('T')[0]);
+    }
 })();
 
 currentWeekNum = getWeekNum() || 1;      // for Weekly Tracker
@@ -405,11 +412,9 @@ function formatWeekRange(weekNum) {
 // Uses cfg-weekStart as the cycle boundary so that old week-1 tasks
 // from a previous month are not shown after a reset.
 function isInCurrentCycle(task) {
-    const cycleStart = localStorage.getItem('cfg-weekStart');
+    const cycleStart = localStorage.getItem('cfg-weekStart'); // first Mon of current month
     if (!cycleStart) return true;
-    // If no entryDate stored, we can't determine cycle — show the task.
-    // Tasks without entryDate are rare (old imports); hiding them breaks Works.
-    if (!task.entryDate) return true;
+    if (!task.entryDate) return true; // no date — can't determine, show it
     return task.entryDate >= cycleStart;
 }
 
@@ -1231,7 +1236,8 @@ function updateBoardCounts() {
             d.match.includes((t.assignee || '').toLowerCase().trim()) &&
             t.statusNorm !== 'done' &&
             t.statusNorm !== 'carryover' &&
-            t.weekNum === w
+            t.weekNum === w &&
+            isInCurrentCycle(t)
         ).length;
         const el = document.getElementById(`dcount-${d.key}`);
         if (el) el.textContent = count;
@@ -1251,7 +1257,7 @@ function renderDesignerBoard(key) {
     // Filter: only current selected week (unless toggled to show all)
     let tasks = allTasks.filter(t => d.match.includes((t.assignee || '').toLowerCase().trim()));
     if (!boardShowAllWeeks) {
-        tasks = tasks.filter(t => t.weekNum === w || !t.weekNum);
+        tasks = tasks.filter(t => (t.weekNum === w || !t.weekNum) && isInCurrentCycle(t));
     } else {
         // Show all weeks — keep everything
     }
@@ -1391,7 +1397,7 @@ function renderWeeklyTable(rows, key) {
 
     const d = DESIGNERS.find(d => d.key === key);
     const designerTasks = d ? allTasks.filter(t => d.match.includes((t.assignee || '').toLowerCase().trim())) : [];
-    const thisWeekTasks = designerTasks.filter(t => t.weekNum === currentWeekNum);
+    const thisWeekTasks = designerTasks.filter(t => t.weekNum === currentWeekNum && isInCurrentCycle(t));
     const taskOptions = designerTasks.map(t => `<option value="${esc(t.task)}">${esc(t.client)} – ${esc(t.task.slice(0, 40))}</option>`).join('');
 
     // Unified task rendering: Everything is now a Task (Assigned or Extra).
@@ -1968,9 +1974,13 @@ function resetToWeekOne() {
             currentSprintWeek = 1;
             currentKPIWeek = 1;
 
-            const d = new Date();
-            d.setDate(d.getDate() - d.getDay() + 1);
-            localStorage.setItem('cfg-weekStart', d.toISOString().split('T')[0]);
+            // Set cycle start to first Monday of current month
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const dow = firstDay.getDay();
+            const daysToMon = dow === 0 ? 1 : dow === 1 ? 0 : 8 - dow;
+            const firstMon = new Date(firstDay.getTime() + daysToMon * 86400000);
+            localStorage.setItem('cfg-weekStart', firstMon.toISOString().split('T')[0]);
 
             renderAll();
             toast('Week manually reset to 1.', 'success');
@@ -2065,11 +2075,14 @@ async function executeWeekClose() {
     currentSprintWeek = nextWk;
     currentKPIWeek = nextWk;
 
-    // When cycle resets to week 1, update cfg-weekStart so the new cycle
-    // boundary is correct and old-cycle tasks are excluded from current views.
+    // When cycle resets to week 1, set cfg-weekStart to first Monday of next month.
     if (nextWk === 1) {
-        const newCycleStart = getMondayOf(new Date());
-        localStorage.setItem('cfg-weekStart', newCycleStart.toISOString().split('T')[0]);
+        const now = new Date();
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const dow = nextMonth.getDay();
+        const daysToMon = dow === 0 ? 1 : dow === 1 ? 0 : 8 - dow;
+        const firstMonNextMonth = new Date(nextMonth.getTime() + daysToMon * 86400000);
+        localStorage.setItem('cfg-weekStart', firstMonNextMonth.toISOString().split('T')[0]);
     }
 
     await loadData();
