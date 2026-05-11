@@ -1231,8 +1231,7 @@ function updateBoardCounts() {
             d.match.includes((t.assignee || '').toLowerCase().trim()) &&
             t.statusNorm !== 'done' &&
             t.statusNorm !== 'carryover' &&
-            t.weekNum === w &&
-            isInCurrentCycle(t)
+            t.weekNum === w
         ).length;
         const el = document.getElementById(`dcount-${d.key}`);
         if (el) el.textContent = count;
@@ -1252,7 +1251,7 @@ function renderDesignerBoard(key) {
     // Filter: only current selected week (unless toggled to show all)
     let tasks = allTasks.filter(t => d.match.includes((t.assignee || '').toLowerCase().trim()));
     if (!boardShowAllWeeks) {
-        tasks = tasks.filter(t => (t.weekNum === w || !t.weekNum) && isInCurrentCycle(t));
+        tasks = tasks.filter(t => t.weekNum === w || !t.weekNum);
     } else {
         // Show all weeks — keep everything
     }
@@ -1392,7 +1391,7 @@ function renderWeeklyTable(rows, key) {
 
     const d = DESIGNERS.find(d => d.key === key);
     const designerTasks = d ? allTasks.filter(t => d.match.includes((t.assignee || '').toLowerCase().trim())) : [];
-    const thisWeekTasks = designerTasks.filter(t => t.weekNum === currentWeekNum && isInCurrentCycle(t));
+    const thisWeekTasks = designerTasks.filter(t => t.weekNum === currentWeekNum);
     const taskOptions = designerTasks.map(t => `<option value="${esc(t.task)}">${esc(t.client)} – ${esc(t.task.slice(0, 40))}</option>`).join('');
 
     // Unified task rendering: Everything is now a Task (Assigned or Extra).
