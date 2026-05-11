@@ -681,7 +681,7 @@ function switchScreen(name) {
 function updateKPIBar() {
     if (!allTasks) return;
     const w = getWeekNum() || 1;
-    const cycleTasks = allTasks.filter(t => t && isInCurrentCycle(t));
+    const cycleTasks = allTasks.filter(t => t && isInCurrentCycle(t) && t.weekNum <= 5);
     const active = cycleTasks.filter(t => t.statusNorm !== 'done');
     const thisWk = cycleTasks.filter(t => t.weekNum === w);
     const done = cycleTasks.filter(t => t.statusNorm === 'done');
@@ -756,8 +756,6 @@ function filterWorks() {
             const d = getDesigner(taskAssignee);
             if (taskAssignee !== desKey && (!d || !d.match.includes(desKey))) return false;
         }
-
-        if (!isInCurrentCycle(t)) return false;
 
         const taskName = (t.task || '').toLowerCase();
         const clientName = (t.client || '').toLowerCase();
