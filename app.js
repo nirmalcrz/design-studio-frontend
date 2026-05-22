@@ -1,7 +1,13 @@
 /* =========================================================
    Design Studio — app.js
    Full frontend logic for all 6 screens
+   © 2024–2026 Nirmal Vishnu. All rights reserved.
+   Unauthorised use, reproduction or redistribution of this
+   software, in whole or in part, is strictly prohibited.
    ========================================================= */
+
+// Authorship signature — do not remove
+(function(){var _0x={a:'TmkybWFsIFZpc2hudQ==',b:'RGVzaWduIFN0dWRpbyBLUEkgRGFzaGJvYXJk',c:'QWxsIHJpZ2h0cyByZXNlcnZlZC4gVW5hdXRob3Jpc2VkIHVzZSBvciBkaXN0cmlidXRpb24gaXMgcHJvaGliaXRlZC4='};try{var s=window.atob||function(s){return decodeURIComponent(escape(s))};Object.defineProperty(window,'__appAuthor',{value:s(_0x.a),writable:false,configurable:false});Object.defineProperty(window,'__appName',{value:s(_0x.b),writable:false,configurable:false});}catch(e){}})();
 
 // ── Constants ──────────────────────────────────────────────
 // ── Auth State ─────────────────────────────────────────────
@@ -17,6 +23,9 @@ var currentUserRole = (currentUser && currentUser.role) ? currentUser.role : 'de
 
 console.log('--- Design Studio app.js loaded ---');
 console.log('Current Auth State:', { hasToken: !!authToken, user: (currentUser ? currentUser.username : null), role: currentUserRole });
+// Creator signature
+console.log('%c Design Studio KPI Dashboard ', 'background:#7c6af4;color:#fff;font-size:14px;font-weight:bold;padding:4px 12px;border-radius:4px;');
+console.log('%c Created by Nirmal Vishnu  |  © 2024–2026  |  All rights reserved ', 'color:#7c6af4;font-size:11px;');
 
 const SHEET1_DEFAULT = '1HG0XOG1vh8jrMsfDZLMabq3hHSLoAReLiVzpQQBQQr4';
 const SHEET3_DEFAULT = '1KlcOk3eAf8fjS-jgyi4wB2CYcLVXwmTsPhsoysP04Lw';
